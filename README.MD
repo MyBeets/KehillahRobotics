@@ -1,5 +1,5 @@
 **This is the second iteration of the Kehillah Sailbot boat simulation program.**\
-*this is a simulation program to allow for the creation of a navigation program, I don't expect this to run on the final boat*
+*This is a simulation program to allow for the creation of a navigation program, I don't expect this to run on the final boat.*
 # Main Goal:
 * Simulate aero and hydro dynamic forces on boat sails and hulls
 * Allow for navigation algorithm testing that acuratly replicates how the boat would behave in water
@@ -16,8 +16,8 @@
         * These are usualy used in the math part.
         * Generally all the calculations variables are in metric, that is forces in Newtons, distance in Meters, air density in kg/m^3.<h6>&ensp;<h6>
     * Finally **display variables**, these are purely for the graphics part of the sim, they might not be included in the actuall boat's code.
-        * These can be the pygame cordinate system, pyglet, ect.<h6>&ensp;<h6>
-    * ### Thus all important variables will be instances of a class "[`Variable`](#variable-class)"
+        * These can be the pygame cordinate system, pyglet, ect.
+    * ### To avoid confusion all important variables will be instances of a class "[`Variable`](#variable-class)"
 * ## Angles
     * Always in degrees unless there is a good reason
     * Pyglet angles (do not loop, can be negative)

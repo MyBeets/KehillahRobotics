@@ -2,7 +2,7 @@
 *This is a simulation program to allow for the creation of a navigation program, I don't expect this to run on the final boat.*
 # Main Goal:
 * Simulate aero and hydro dynamic forces on boat sails and hulls
-* Allow for navigation algorithm testing that acuratly replicates how the boat would behave in water
+* Allow for navigation algorithm testing that accurately replicates how the boat would behave in water
 * Calculate optimal sail trim, Best VMG, and general headings for variable hulls and sails
 
 # Conventions/Units:
@@ -53,6 +53,8 @@
 * ### Has 3 main properties, data, calc, disp and the nessesary framework for seemless interaction between the various types
 * Variable will be base class that will have implementations such as `Angle`, `Force`, `Location`.
 * Constructor will take type of variable and value.
+* Format: `Variable(type,value)`:
+    * Types are numbers 0-2, 0 is data variable, 1 is calc variable, 2 is display variable.
 * `.data()`, `.calc()`, `.disp()` are getter functions for numerical values (these are not made to be used in calculation code but only within the variable class).
 * Magic methods for addition, will update all variable types.
 

@@ -53,16 +53,16 @@
 * ### Has 3 main properties, data, calc, disp and the nessesary framework for seemless interaction between the various types
 * Variable will be base class that will have implementations such as `Angle`, `Force`, `Location`.
 * Constructor will take type of variable and value.
+* Something like a coeffeciant isn't being currently made into a variable
 * Format: `Variable(type,value)`:
     * Types are numbers 0-2, 0 is data variable, 1 is calc variable, 2 is display variable.
 * `.data()`, `.calc()`, `.disp()` are getter functions for numerical values (these are not made to be used in calculation code but only within the variable class).
 * Magic methods for addition, will update all variable types.
 
 # Foil Class
-* ### The main goal is to keep track of the various foils, their *absolute* rotation and position and calculate the forces acting on them given a wind source.
+* ### The main goal is to keep track of the various foils and calculate the forces acting on them given a wind source.
 * ### Construtor:
-    * Format: `Foil(rotation, datasheet, material, wetted area)`.
-        * Rotation: absolute rotation in form of `Angle`.
+    * Format: `Foil(datasheet, material, wetted area)`.
         * Datasheet: String of location of datasheet 
         * Material: Density of the material the foil comes in **CONTACT** to, that is water, or air, in kg/m^3.
         * Wetted area: Area which is in contact with the external air/waterflow in m^2.

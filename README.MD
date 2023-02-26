@@ -51,13 +51,16 @@
 
 # Variable Class
 * ### Has 3 main properties, data, calc, disp and the nessesary framework for seemless interaction between the various types
-* Variable will be base class that will have implementations such as `Angle`, `Force`, `Location`.
+* Variable will be base class that will have implementations such as `Angle`, `Vector`.
+    * The `Vector` class might be used to represent: Forces, positions, speeds, ect
 * Constructor will take type of variable and value.
 * Something like a coeffeciant isn't being currently made into a variable
 * Format: `Variable(type,value)`:
     * Types are numbers 0-2, 0 is data variable, 1 is calc variable, 2 is display variable.
 * `.data()`, `.calc()`, `.disp()` are getter functions for numerical values (these are not made to be used in calculation code but only within the variable class).
 * Magic methods for addition, will update all variable types.
+    * The main utitility of the class will be the ability to add, multiply, convert and use different unit systems seemlessly through magic methods.
+    * Ei: you have a data angle `da` and a calc angle `ca`, you can just create a new angle `k=da+ca` that behaves correctly.
 
 # Foil Class
 * ### The main goal is to keep track of the various foils and calculate the forces acting on them given a wind source.

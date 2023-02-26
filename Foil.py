@@ -7,7 +7,7 @@ class foil: # sail, foil, rudder
         self.mat = material # Density of the material the foil comes in contact to in kg/m^3
         self.area = WA #wetted hull or sail
 
-        # liftC and dragC just contain key (direction) value (coeffeciant) pairs
+        # liftC and dragC just contain key (direction), value (coeffeciant) pairs
         if datasheet.find("naca")!= -1:
             self.liftC = self.read(self.datasheet,"Cl")
             self.dragC = self.read(self.datasheet,"Cd")
@@ -18,6 +18,11 @@ class foil: # sail, foil, rudder
             self.liftC = self.read(self.datasheet,"CL")
             self.dragC = self.read(self.datasheet,"CD")
 
+    def drag(self, aparentV):
+        return (self.cd(aparentV.angle) * self.mat * pow(aparentV.speed(),2) *self.area)/2
+
+    def lift(self, aparentV):
+        return (self.cl(aparentV.angle) * self.mat * pow(aparentV.speed(),2) *self.area)/2
 
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []
@@ -55,12 +60,11 @@ class foil: # sail, foil, rudder
 
     def cd(self, a):
         a = abs(a.data())
-        print(a)
         a %= 360
         last = self.dragC[-1][0].data()
         if a > last:
             a =last - a%last
-        return self.linearInterpolation(self.dragC,a) #np.polyval(self.dragC,a)
+        return self.linearInterpolation(self.dragC,a)
     def cl(self, a):
         a = abs(a.data())
         a %= 360
@@ -76,7 +80,7 @@ if __name__ == "__main__":
 
     sail = foil("mainSailCoeffs.cvs", 0.128, 1)
 
-    #read method for mainsail lift
+    #read method for mainsail lift coeffeciants
     pas+= sail.liftC[0][0].data() == 0;fail+=sail.liftC[0][0].data() != 0 
     pas+= sail.liftC[0][0].calc() == 90;fail+=sail.liftC[0][0].calc() != 90 
     pas+= sail.liftC[0][0].display() == 90;fail+=sail.liftC[0][0].display() != 90 
@@ -96,10 +100,17 @@ if __name__ == "__main__":
     abs_path = os.path.join(script_dir, path)
     hull = foil(abs_path, 1, 0.5)
 
-    #read method for hull drag
+    #read method for hull drag coeffeciants
     pas+= hull.dragC[0][0].data() == 0;fail+=hull.dragC[0][0].data() != 0
     pas+= hull.dragC[0][1] == 0.0067;fail+=hull.dragC[0][1] != 0.0067
     pas+= hull.dragC[10][1] == 0.0159;fail+=hull.dragC[10][1] != 0.0159
     pas+= hull.dragC[15][1] == 0.1170;fail+=hull.dragC[15][1] != 0.1170
+
+    # lift and drag methods
+    pas+= hull.lift(Vector(Angle(1,45),10)) == 27.125;fail+=hull.lift(Vector(Angle(1,45),10)) != 27.125
+    pas+= hull.lift(Vector(Angle(1,90),10)) == 0;fail+=hull.lift(Vector(Angle(1,90),10)) != 0
+    pas+= hull.lift(Vector(Angle(1,270),10)) == 0;fail+=hull.lift(Vector(Angle(1,270),10)) != 0
+    pas+= hull.drag(Vector(Angle(1,270),10)) <= 1;fail+=hull.drag(Vector(Angle(1,270),10)) > 1
+    pas+= hull.drag(Vector(Angle(1,-10),10)) >= 40;fail+=hull.drag(Vector(Angle(1,-10),10)) < 40
 
     print("passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail))

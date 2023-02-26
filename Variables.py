@@ -101,12 +101,12 @@ class Angle(Variable):
     def calc2data(self):
         return abs(90-self.value)
 
-class Force(Variable):
-    pass
-
-class Location(Variable):
-    pass
-
+class Vector():
+    def __init__(self,Angle,magnitude):
+        self.angle = Angle
+        self.norm = magnitude
+    def speed(self): # this is for displacement/speed vectors
+        return self.norm
 
 if __name__ == "__main__":
     pas = 0

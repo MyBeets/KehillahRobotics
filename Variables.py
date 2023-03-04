@@ -37,11 +37,11 @@ class Variable:
         if self.type == 2:
             return "Display: "+ str(self.value)
     def __add__(self,x):#results are always in the type of the array on which the operation is called
-        return Variable(self.type, self.nType(self.type)+x.nType(self.type))
+        return Variable(self.type, self.value+x.nType(self.type))
     def __sub__(self,x):
-        return Variable(self.type, self.nType(self.type)-x.nType(self.type))
+        return Variable(self.type, self.value-x.nType(self.type))
     def __mul__(self,x):
-        return Variable(self.type, self.nType(self.type)*x.nType(self.type))
+        return Variable(self.type, self.value*x.nType(self.type))
 
 class Angle(Variable):
     """
@@ -64,6 +64,7 @@ class Angle(Variable):
    180---0
        |270
     """
+    # 0 is data variable, 1 is calc variable, 2 is display variable
     def data(self):
         if self.type == 1:
             return self.calc2data()
@@ -95,11 +96,17 @@ class Angle(Variable):
     def data2display(self):
         return self.value + 90
     def data2calc(self): # this shouldn't happen too much as there would be a loss of information
-        return 90- self.value 
+        return 90-self.value 
     def calc2display(self):
         return -self.value +180
     def calc2data(self):
         return abs(90-self.value)
+    def __add__(self,x):#results are always in the type of the array on which the operation is called
+        return Angle(self.type, self.value+x.nType(self.type))
+    def __sub__(self,x):
+        return Angle(self.type, self.value-x.nType(self.type))
+    def __mul__(self,x):
+        return Angle(self.type, self.value*x.nType(self.type))
 
 class Vector():
     def __init__(self,Angle,magnitude):
@@ -107,6 +114,8 @@ class Vector():
         self.norm = magnitude
     def speed(self): # this is for displacement/speed vectors
         return self.norm
+    def __str__(self):
+        return "Vector, norm: " +str(self.norm) + ", " + str(self.angle)
 
 if __name__ == "__main__":
     pas = 0

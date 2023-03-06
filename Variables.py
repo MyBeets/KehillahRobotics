@@ -73,7 +73,7 @@ class Angle(Variable):
             return self.display2data()
         return self.value
     def __str__(self):
-        return "Angle: " + super().__str__()
+        return "\033[96mAngle\033[0m: " + super().__str__()
     def calc(self):
         if self.type == 0:
             return self.data2calc()
@@ -130,4 +130,4 @@ class Vector():
         y.angle += Angle(y.angle.type,180)
         return self + y
     def __str__(self):
-        return "Vector, norm: " +str(self.norm) + ", " + str(self.angle)
+        return "\033[93mVector\033[0m, norm: " +str(self.norm) + ", " + str(self.angle)

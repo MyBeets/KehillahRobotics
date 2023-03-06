@@ -1,5 +1,4 @@
 from Variables import *
-import os
 
 class foil: # sail, foil, rudder
     def __init__(self, datasheet, material, WA):

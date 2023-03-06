@@ -1,4 +1,5 @@
 import math
+import copy
 
 class Variable:
     value = 0
@@ -31,11 +32,11 @@ class Variable:
 
     def __str__(self):
         if self.type == 0:
-            return "Data: "+ str(self.value)
+            return "Data: "+ str(round(self.value*100)/100)
         if self.type == 1:
-            return "Calc: "+ str(self.value)
+            return "Calc: "+ str(round(self.value*100)/100)
         if self.type == 2:
-            return "Display: "+ str(self.value)
+            return "Display: "+ str(round(self.value*100)/100)
     def __add__(self,x):#results are always in the type of the array on which the operation is called
         return Variable(self.type, self.value+x.nType(self.type))
     def __sub__(self,x):
@@ -71,7 +72,8 @@ class Angle(Variable):
         if self.type == 2:
             return self.display2data()
         return self.value
-    
+    def __str__(self):
+        return "Angle: " + super().__str__()
     def calc(self):
         if self.type == 0:
             return self.data2calc()
@@ -114,12 +116,30 @@ class Vector():
         self.norm = magnitude
     def speed(self): # this is for displacement/speed vectors
         return self.norm
+    def xcomp(self): # x component of vector in calc format
+        return math.cos(self.angle.calc()*math.pi/180)*self.speed()
+    def ycomp(self): # y component of vector in calc format
+        return math.sin(self.angle.calc()*math.pi/180)*self.speed()
+    def __add__(self,x):#Returns vector addition in calc format
+        #NOTE: I don't like this current method, the use of x components and trig is bad for precision, this should be replaced
+        dx = self.xcomp() + x.xcomp() + 0.0000000001
+        dy = self.ycomp() + x.ycomp()
+        return Vector(Angle(1, round(math.atan(dy/dx)*180/math.pi*10000)/10000),round(math.sqrt(dx*dx+dy*dy)*10000)/10000)
+    def __sub__(self,x):
+        y = copy.deepcopy(x)
+        y.angle += Angle(y.angle.type,180)
+        return self + y
     def __str__(self):
         return "Vector, norm: " +str(self.norm) + ", " + str(self.angle)
 
+def color(fail):
+    if fail==0:
+        return '.  \x1b[6;30;42m' + 'Success!' + '\x1b[0m'
+    else:
+        return '.  \x1b[7;31;40m' + 'Failure!' + '\x1b[0m'
+    
 if __name__ == "__main__":
-    pas = 0
-    fail = 0
+    pas = 0;fail = 0
 
     #Basic Variable Class:
     basicVar = Variable(1,10)#calc
@@ -127,16 +147,18 @@ if __name__ == "__main__":
     pas+= basicVar.calc() == 10;fail+= basicVar.calc() != 10
     pas+= basicVar.display() == 10;fail+= basicVar.display() != 10
     pas+= basicVar.type == 1;fail+= basicVar.type != 1
-    pas+= str(basicVar) == "Calc: 10";fail+= str(basicVar) != "Calc: 10"
+    pas+= str(basicVar) == "Calc: 10.0";fail+= str(basicVar) != "Calc: 10.0"
     basicVar.changeType(2)
     pas+= basicVar.data() == 10;fail+= basicVar.data() != 10
     pas+= basicVar.calc() == 10;fail+= basicVar.calc() != 10
     pas+= basicVar.display() == 10;fail+= basicVar.display() != 10  
     pas+= basicVar.type == 2;fail+= basicVar.type != 2
+    print("Variable, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    pas = 0;fail = 0
 
     #Basic Angle Class:
     calcAngle = Angle(1, 40) # calc
-    pas+= str(calcAngle) == "Calc: 40";fail+= str(calcAngle) != "Calc: 40"
+    pas+= str(calcAngle) == "Angle: Calc: 40.0";fail+= str(calcAngle) != "Angle: Calc: 40.0"
     pas+= calcAngle.calc2display() == 140;fail+= calcAngle.calc2display() != 140
     pas+= calcAngle.display() == 140;fail+= calcAngle.display() != 140
     pas+= calcAngle.calc2data() == 50;fail+= calcAngle.calc2data() != 50
@@ -148,6 +170,8 @@ if __name__ == "__main__":
     pas+= calcAngle.data() == 50;fail+= calcAngle.data() != 50
     pas+= calcAngle.calc() == 40;fail+= calcAngle.calc() != 40
     pas+= basicVar.type == 2;fail+= basicVar.type != 2
+    print("Calc Angle, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    pas = 0;fail = 0
 
     dataAngle = Angle(0, 90)#data
     pas+= dataAngle.data2calc() == 0;fail+= dataAngle.data2calc() != 0
@@ -161,6 +185,8 @@ if __name__ == "__main__":
     pas+= dataAngle.display() == 180;fail+= dataAngle.display() != 180
     pas+= dataAngle.data() == 90;fail+= dataAngle.data() != 90
     pas+= dataAngle.type == 2;fail+= dataAngle.type != 2
+    print("Data Angle, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    pas = 0;fail = 0
 
     displayAngle = Angle(2, 0)#display
     pas+= displayAngle.display2calc() == 180;fail+= displayAngle.display2calc() != 180
@@ -174,5 +200,26 @@ if __name__ == "__main__":
     pas+= displayAngle.data() == -90;fail+= displayAngle.data() != -90
     pas+= displayAngle.display() == 0;fail+= displayAngle.display() != 0
     pas+= dataAngle.type == 0;fail+= dataAngle.type != 0
+    print("Display Angle, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    pas = 0;fail = 0
 
-    print("passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail))
+    #Simple Vector
+    v1 = Vector(Angle(1,10),10)
+    v2 = Vector(Angle(1,10),10)
+    v3 = v1+v2
+    v4 = v1-v2
+    v5 = v3+v4
+    pas+= v3.angle.calc() == 10.0;fail+= v3.angle.calc() !=10.0
+    pas+= v3.speed() == 20;fail+= v3.speed() != 20
+    pas+= round(v4.angle.calc()) == 0;fail+= round(v4.angle.calc()) !=0
+    pas+= v4.speed() == 0;fail+= v4.speed() != 0
+    pas+= v5.angle.calc() == 10.0;fail+= v5.angle.calc() !=10.0
+    pas+= v5.speed() == 20;fail+= v5.speed() != 20
+    #Harder Vector calculations
+    v6 = Vector(Angle(1,10),10)
+    v7 = Vector(Angle(1,-20),-5.5) # 160 with norm 5.5
+    v8 = v6+v7
+    pas+= v8.angle.calc() == 37.705;fail+= v8.angle.calc() !=37.705
+    pas+= v8.speed() == 5.915;fail+= v8.speed() != 5.915
+    print("Vector, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    pas = 0;fail = 0

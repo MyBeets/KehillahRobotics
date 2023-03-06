@@ -3,6 +3,7 @@ from Foil import foil
 from Variables import *
 from Boat import Boat
 import os
+import re
 
 data_dir = os.path.dirname(__file__) #abs dir
 
@@ -12,6 +13,10 @@ def color(fail):
     else:
         return '.  \x1b[7;31;40m' + 'Failure!' + '\x1b[0m'
 
+def rm_ansi(line):
+    ansi_escape =re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
+    return ansi_escape.sub('', line)
+
 def VariableTest():
     pas = 0;fail = 0
     #Basic Variable Class:
@@ -20,7 +25,7 @@ def VariableTest():
     pas+= basicVar.calc() == 10;fail+= basicVar.calc() != 10
     pas+= basicVar.display() == 10;fail+= basicVar.display() != 10
     pas+= basicVar.type == 1;fail+= basicVar.type != 1
-    pas+= str(basicVar) == "Calc: 10.0";fail+= str(basicVar) != "Calc: 10.0"
+    pas+= rm_ansi(str(basicVar)) == "Calc: 10.0";fail+= rm_ansi(str(basicVar)) != "Calc: 10.0"
     basicVar.changeType(2)
     pas+= basicVar.data() == 10;fail+= basicVar.data() != 10
     pas+= basicVar.calc() == 10;fail+= basicVar.calc() != 10
@@ -31,7 +36,7 @@ def VariableTest():
 
     #Basic Angle Class:
     calcAngle = Angle(1, 40) # calc
-    pas+= str(calcAngle) == "Angle: Calc: 40.0";fail+= str(calcAngle) != "Angle: Calc: 40.0"
+    pas+= rm_ansi(str(calcAngle)) == "Angle: Calc: 40.0";fail+= rm_ansi(str(calcAngle)) != "Angle: Calc: 40.0"
     pas+= calcAngle.calc2display() == 140;fail+= calcAngle.calc2display() != 140
     pas+= calcAngle.display() == 140;fail+= calcAngle.display() != 140
     pas+= calcAngle.calc2data() == 50;fail+= calcAngle.calc2data() != 50
@@ -148,17 +153,31 @@ def BoatTest():
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1)
     wind = Vector(Angle(1,270),10) # Going South wind, 10 m/s
     boat = Boat([hull],[sail],wind)
-
     pas = 0; fail = 0
+
     #Wind
     wind.angle += Angle(1,10) # now wind is going 280* calc south
-    pas+= str(boat.wind) == "Vector, norm: 10, Angle: Calc: 280.0"; fail+=str(boat.wind) != "Vector, norm: 10, Angle: Calc: 280.0"
+    pas+= rm_ansi(str(boat.wind)) == "Vector, norm: 10, Angle: Calc: 280.0"; fail+=rm_ansi(str(boat.wind)) != "Vector, norm: 10, Angle: Calc: 280.0"
     pas+= boat.wind.angle.data() == 190; fail+=boat.wind.angle.data() != 190
     print("Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
     pas = 0;fail = 0
 
     #Aparent Wind
-    print(boat.globalAparentWind())
+    pas+= boat.globalAparentWind().angle.calc() == -80; boat.globalAparentWind().angle.calc() != -80
+    pas+= boat.globalAparentWind().speed() == 10.0; boat.globalAparentWind().speed() != 10.0
+    wind.angle -= Angle(1,10)
+    boat.velocity.norm += 10
+    pas+= boat.globalAparentWind().angle.calc() == -90; boat.globalAparentWind().angle.calc() != -90
+    pas+= boat.globalAparentWind().speed() == 20.0; boat.globalAparentWind().speed() != 20.0
+    boat.velocity.norm -= 20
+    pas+= boat.globalAparentWind().angle.calc() == 0; boat.globalAparentWind().angle.calc() != 0
+    pas+= boat.globalAparentWind().speed() == 0.0; boat.globalAparentWind().speed() != 0.0
+
+    wind.angle += Angle(1,35)
+    boat.velocity.norm = 10
+    pas+= boat.globalAparentWind().angle.calc() == -72.5; boat.globalAparentWind().angle.calc() != -72.5
+    pas+= boat.globalAparentWind().speed() == 19.0743; boat.globalAparentWind().speed() != 19.0743
+
     print("Aparent Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
 
 

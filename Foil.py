@@ -5,6 +5,7 @@ class foil: # sail, foil, rudder
         self.datasheet = datasheet #string file location of csv
         self.mat = material # Density of the material the foil comes in contact to in kg/m^3
         self.area = WA #wetted hull or sail
+        self.angle = Angle(1,0)# Relative angle to parent object (all is inline with boat)
 
         # liftC and dragC just contain key (direction), value (coeffeciant) pairs
         if datasheet.find("naca")!= -1:

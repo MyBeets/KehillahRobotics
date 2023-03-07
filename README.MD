@@ -86,3 +86,10 @@
         * Hulls: Array of hydrofoils
         * Sails: Array of sails
         * Wind: Single Wind instance
+* ### Global Aparent Wind:
+    * Format: `boat.globalAparentWind()`
+    * Returns `Vector` of the aparent wind in terms of global positioning
+* ### Sail Aparent Wind:
+    * Format: `boat.sailAparentWind(idx=0)`
+        * Where `idx` is sail index, defaults to 0
+    * Returns `Vector` of the local aparent wind in terms of given sail

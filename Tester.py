@@ -9,9 +9,9 @@ data_dir = os.path.dirname(__file__) #abs dir
 
 def color(fail):
     if fail==0:
-        return '.  \x1b[6;30;42m' + 'Success!' + '\x1b[0m'
+        return '.  \x1b[6;30;42m' + 'Success!' + '\033[0m'
     else:
-        return '.  \x1b[7;31;40m' + 'Failure!' + '\x1b[0m'
+        return '.  \x1b[7;31;40m' + 'Failure!' + '\033[0m'
 
 def rm_ansi(line):
     ansi_escape =re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
@@ -162,26 +162,50 @@ def BoatTest():
     print("Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
     pas = 0;fail = 0
 
-    #Aparent Wind
-    pas+= boat.globalAparentWind().angle.calc() == -80; boat.globalAparentWind().angle.calc() != -80
-    pas+= boat.globalAparentWind().speed() == 10.0; boat.globalAparentWind().speed() != 10.0
+    #Global Aparent Wind
+    pas+= boat.globalAparentWind().angle.calc() == -80; fail+=boat.globalAparentWind().angle.calc() != -80
+    pas+= boat.globalAparentWind().speed() == 10.0;fail+= boat.globalAparentWind().speed() != 10.0
     wind.angle -= Angle(1,10)
     boat.velocity.norm += 10
-    pas+= boat.globalAparentWind().angle.calc() == -90; boat.globalAparentWind().angle.calc() != -90
-    pas+= boat.globalAparentWind().speed() == 20.0; boat.globalAparentWind().speed() != 20.0
+    pas+= boat.globalAparentWind().angle.calc() == -90;fail+= boat.globalAparentWind().angle.calc() != -90
+    pas+= boat.globalAparentWind().speed() == 20.0; fail+= boat.globalAparentWind().speed() != 20.0
     boat.velocity.norm -= 20
-    pas+= boat.globalAparentWind().angle.calc() == 0; boat.globalAparentWind().angle.calc() != 0
-    pas+= boat.globalAparentWind().speed() == 0.0; boat.globalAparentWind().speed() != 0.0
-
+    pas+= boat.globalAparentWind().angle.calc() == 0; fail+= boat.globalAparentWind().angle.calc() != 0
+    pas+= boat.globalAparentWind().speed() == 0.0; fail+= boat.globalAparentWind().speed() != 0.0
     wind.angle += Angle(1,35)
     boat.velocity.norm = 10
-    pas+= boat.globalAparentWind().angle.calc() == -72.5; boat.globalAparentWind().angle.calc() != -72.5
-    pas+= boat.globalAparentWind().speed() == 19.0743; boat.globalAparentWind().speed() != 19.0743
+    pas+= boat.globalAparentWind().angle.calc() == -72.5; fail+= boat.globalAparentWind().angle.calc() != -72.5
+    pas+= boat.globalAparentWind().speed() == 19.0743; fail+= boat.globalAparentWind().speed() != 19.0743
+    print("Global Aparent Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    pas = 0;fail = 0
 
-    print("Aparent Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    #Local Aparent Wind
+    wind.angle = Angle(1,270)
+    pas+= boat.sailAparentWind().angle.calc() == -90; fail+= boat.sailAparentWind().angle.calc() != -90
+    pas+= boat.sailAparentWind().speed() == 20; fail+= boat.sailAparentWind().speed() != 20
+    wind.angle = Angle(1,225)
+    boat.velocity.norm = 0
+    pas+= boat.sailAparentWind().angle.calc() == -135; fail+= boat.sailAparentWind().angle.calc() != -135
+    pas+= boat.sailAparentWind().speed() == 10; fail+= boat.sailAparentWind().speed() != 10
+    boat.velocity.norm = 5
+    pas+= boat.sailAparentWind().angle.calc() == -120.3612; fail+= boat.sailAparentWind().angle.calc() != -120.3612
+    pas+= boat.sailAparentWind().speed() == 13.9897; fail+= boat.sailAparentWind().speed() != 13.9897
+    boat.velocity.norm = 10
+    boat.velocity.angle += Angle(1,15)
+    pas+= boat.sailAparentWind().angle.calc() == -105.0; fail+= boat.sailAparentWind().angle.calc() != -105.0
+    pas+= boat.sailAparentWind().speed() == 17.3205; fail+= boat.sailAparentWind().speed() != 17.3205
+    boat.velocity.angle -= Angle(1,15)
+    boat.velocity.norm = 0
+    boat.sails[0].angle += Angle(1,15)
+    pas+= boat.sailAparentWind().angle.calc() == -150; fail+= boat.sailAparentWind().angle.calc() != -150
+    pas+= boat.sailAparentWind().speed() == 10; fail+= boat.sailAparentWind().speed() != 10
+    print("Local Aparent Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    
+    #print("wind: ",boat.wind,'\n vel: ',boat.velocity, '\n res:',boat.sailAparentWind())
 
 
 if __name__ == "__main__":
+    # color guide https://stackoverflow.com/questions/287871/how-do-i-print-colored-text-to-the-terminal
     print("\033[1m\033[95m"+"Variable test"+"\033[0m")
     VariableTest()
     print("\033[1m\033[95m"+"Foil test"+"\033[0m")

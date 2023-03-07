@@ -124,10 +124,10 @@ class Vector():
         #NOTE: I don't like this current method, the use of x components and trig is bad for precision, this should be replaced
         dx = self.xcomp() + x.xcomp() + 0.0000000001
         dy = self.ycomp() + x.ycomp()
-        return Vector(Angle(1, round(math.atan(dy/dx)*180/math.pi*10000)/10000),round(math.sqrt(dx*dx+dy*dy)*10000)/10000)
+        return Vector(Angle(1, round(math.atan2(dy,dx)*180/math.pi*10000)/10000),round(math.sqrt(dx*dx+dy*dy)*10000)/10000)
     def __sub__(self,x):
         y = copy.deepcopy(x)
-        y.angle += Angle(y.angle.type,180)
+        y.norm = -y.norm
         return self + y
     def __str__(self):
         return "\033[93mVector\033[0m, norm: " +str(self.norm) + ", " + str(self.angle)

@@ -138,11 +138,11 @@ def FoilTest():
     pas = 0;fail = 0
 
     # lift and drag methods
-    pas+= hull.lift(Vector(Angle(1,45),10)) == 27.125;fail+=hull.lift(Vector(Angle(1,45),10)) != 27.125
-    pas+= hull.lift(Vector(Angle(1,90),10)) == 0;fail+=hull.lift(Vector(Angle(1,90),10)) != 0
-    pas+= hull.lift(Vector(Angle(1,270),10)) == 0;fail+=hull.lift(Vector(Angle(1,270),10)) != 0
-    pas+= hull.drag(Vector(Angle(1,270),10)) <= 1;fail+=hull.drag(Vector(Angle(1,270),10)) > 1
-    pas+= hull.drag(Vector(Angle(1,-10),10)) >= 40;fail+=hull.drag(Vector(Angle(1,-10),10)) < 40
+    pas+= hull.lift(Vector(Angle(1,45)-Angle(1,180),10)) == 27.125;fail+=hull.lift(Vector(Angle(1,45)-Angle(1,180),10)) != 27.125
+    pas+= hull.lift(Vector(Angle(1,90)-Angle(1,180),10)) == 0;fail+=hull.lift(Vector(Angle(1,90)-Angle(1,180),10)) != 0
+    pas+= hull.lift(Vector(Angle(1,270)-Angle(1,180),10)) == 0;fail+=hull.lift(Vector(Angle(1,270)-Angle(1,180),10)) != 0
+    pas+= hull.drag(Vector(Angle(1,270)-Angle(1,180),10)) <= 1;fail+=hull.drag(Vector(Angle(1,270)-Angle(1,180),10)) > 1
+    pas+= hull.drag(Vector(Angle(1,-10)-Angle(1,180),10)) >= 40;fail+=hull.drag(Vector(Angle(1,-10)-Angle(1,180),10)) < 40
 
     print("L/D methods, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
     pas = 0;fail = 0
@@ -200,7 +200,7 @@ def BoatTest():
     pas+= boat.sailAparentWind().angle.calc() == -150; fail+= boat.sailAparentWind().angle.calc() != -150
     pas+= boat.sailAparentWind().speed() == 10; fail+= boat.sailAparentWind().speed() != 10
     print("Local Aparent Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
-    
+
     #print("wind: ",boat.wind,'\n vel: ',boat.velocity, '\n res:',boat.sailAparentWind())
 
 

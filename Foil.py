@@ -19,10 +19,15 @@ class foil: # sail, foil, rudder
             self.dragC = self.read(self.datasheet,"CD")
 
     def drag(self, aparentV):
-        return (self.cd(aparentV.angle) * self.mat * pow(aparentV.speed(),2) *self.area)/2
+        # the + Angle(1,180) is to flip the wind from direction pointing to direction of arrival
+        return (self.cd(aparentV.angle+Angle(1,180)) * self.mat * pow(aparentV.speed(),2) *self.area)/2
 
     def lift(self, aparentV):
-        return (self.cl(aparentV.angle) * self.mat * pow(aparentV.speed(),2) *self.area)/2
+        return (self.cl(aparentV.angle+Angle(1,180)) * self.mat * pow(aparentV.speed(),2) *self.area)/2
+
+    # def liftForce(self, aparentV):
+    #     if self.angle.
+    #     return Vector(aparentV.angle+Angle(1,90))
 
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []

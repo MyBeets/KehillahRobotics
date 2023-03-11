@@ -103,12 +103,16 @@ class Angle(Variable):
         return -self.value +180
     def calc2data(self):
         return abs(90-self.value)
+    def norm(self,v):
+        if v.type == 1 or v.type ==2: #calc
+            v.value %=360
+        return v
     def __add__(self,x):#results are always in the type of the array on which the operation is called
-        return Angle(self.type, self.value+x.nType(self.type))
+        return Angle(self.type, self.norm(self).value+self.norm(x).nType(self.type))
     def __sub__(self,x):
-        return Angle(self.type, self.value-x.nType(self.type))
+        return Angle(self.type, self.norm(self).value-self.norm(x).nType(self.type))
     def __mul__(self,x):
-        return Angle(self.type, self.value*x.nType(self.type))
+        return Angle(self.type, self.norm(self).value*self.norm(x).nType(self.type))
 
 class Vector():
     def __init__(self,Angle,magnitude):

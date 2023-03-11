@@ -12,14 +12,18 @@
 *Due to the complexity of the problem multiple: angle, positioning, speed, force, ect systems are inevitable*
 * ## Overall
     * ### Currently there seems to be 3 main "types" of units: Data, Calculations, Display.
+    _____________________
     * **Data variables** are usually external data that are nessesary to the boat's function (wind tunel data, speed polars, ect).
         * They have very specific formats that make sense for their application (ei: upwards is 0&deg;).
+    _____________________
     * **Calculations variables** are the main types of variables and make sense for the big picture, these are the "conceptual" units.
         * Typically uses unit circle angles, cardinal directions (the exact types we are using are documented further down).
         * These are usualy used in the math part.
         * Generally all the calculations variables are in metric, that is forces in Newtons, distance in Meters, air density in kg/m^3.
+    _____________________
     * Finally **display variables**, these are purely for the graphics part of the sim, they might not be included in the actuall boat's code.
         * These can be the pygame cordinate system, pyglet, ect.
+    _____________________
     * ### To avoid confusion all important variables will be instances of a class "[`Variable`](#variable-class)"
 * ## Angles
     * Always in degrees unless there is a good reason

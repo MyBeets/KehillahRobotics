@@ -103,8 +103,9 @@ class Angle(Variable):
         return -self.value +180
     def calc2data(self):
         return abs(90-self.value)
-    def norm(self,v):
-        if v.type == 1 or v.type ==2: #calc
+    @staticmethod
+    def norm(v):
+        if v.type == 1 or v.type ==2: #calc and display
             v.value %=360
         return v
     def __add__(self,x):#results are always in the type of the array on which the operation is called

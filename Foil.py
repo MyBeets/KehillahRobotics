@@ -26,8 +26,10 @@ class foil: # sail, foil, rudder
         return (self.cl(aparentV.angle+Angle(1,180)) * self.mat * pow(aparentV.speed(),2) *self.area)/2
 
     # def liftForce(self, aparentV):
-    #     if self.angle.
-    #     return Vector(aparentV.angle+Angle(1,90))
+    # #     if self.angle.
+    # #     return Vector(aparentV.angle+Angle(1,90))
+    def dragForce(self, aparentV):
+        return Vector(aparentV.angle,self.drag(aparentV))
 
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []

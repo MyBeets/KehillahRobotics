@@ -181,26 +181,41 @@ def BoatTest():
 
     #Local Aparent Wind
     wind.angle = Angle(1,270)
-    pas+= boat.sailAparentWind().angle.calc() == -90; fail+= boat.sailAparentWind().angle.calc() != -90
+    pas+= boat.sailAparentWind().angle.calc() == 360-90; fail+= boat.sailAparentWind().angle.calc() != 360-90
     pas+= boat.sailAparentWind().speed() == 20; fail+= boat.sailAparentWind().speed() != 20
     wind.angle = Angle(1,225)
     boat.velocity.norm = 0
-    pas+= boat.sailAparentWind().angle.calc() == -135; fail+= boat.sailAparentWind().angle.calc() != -135
+    pas+= boat.sailAparentWind().angle.calc() == 360-135; fail+= boat.sailAparentWind().angle.calc() != 360-135
     pas+= boat.sailAparentWind().speed() == 10; fail+= boat.sailAparentWind().speed() != 10
     boat.velocity.norm = 5
-    pas+= boat.sailAparentWind().angle.calc() == -120.3612; fail+= boat.sailAparentWind().angle.calc() != -120.3612
+    pas+= boat.sailAparentWind().angle.calc() == 360-120.3612; fail+= boat.sailAparentWind().angle.calc() != 360-120.3612
     pas+= boat.sailAparentWind().speed() == 13.9897; fail+= boat.sailAparentWind().speed() != 13.9897
     boat.velocity.norm = 10
     boat.velocity.angle += Angle(1,15)
-    pas+= boat.sailAparentWind().angle.calc() == -105.0; fail+= boat.sailAparentWind().angle.calc() != -105.0
+    pas+= boat.sailAparentWind().angle.calc() == 360-105.0; fail+= boat.sailAparentWind().angle.calc() != 360-105.0
     pas+= boat.sailAparentWind().speed() == 17.3205; fail+= boat.sailAparentWind().speed() != 17.3205
     boat.velocity.angle -= Angle(1,15)
     boat.velocity.norm = 0
     boat.sails[0].angle += Angle(1,15)
-    pas+= boat.sailAparentWind().angle.calc() == -150; fail+= boat.sailAparentWind().angle.calc() != -150
+    pas+= boat.sailAparentWind().angle.calc() == 360-150; fail+= boat.sailAparentWind().angle.calc() != 360-150
+    pas+= boat.sailAparentWind().speed() == 10; fail+= boat.sailAparentWind().speed() != 10
+    boat.velocity.norm = 0
+    boat.sails[0].angle = Angle(1,10)
+    wind.angle = Angle(1,225)
+    pas+= boat.sailAparentWind().angle.calc() == 360-145.0; fail+= boat.sailAparentWind().angle.calc() != 360-145.0
     pas+= boat.sailAparentWind().speed() == 10; fail+= boat.sailAparentWind().speed() != 10
     print("Local Aparent Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    pas = 0;fail = 0
+    boat.angle = Angle(1,75)
+    boat.sails[0].angle = Angle(1,70)
+    wind.angle = Angle(1,0)
+    aparentForce = boat.sails[0].dragForce(boat.sailAparentWind(0))
+    aparentForce.angle += boat.angle + boat.sails[0].angle - Angle(1,90)
+    aparentForce.angle = Angle.norm(aparentForce.angle)
+    print(aparentForce)
 
+    print("HULL+BOAT Forces, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    pas = 0;fail = 0
     #print("wind: ",boat.wind,'\n vel: ',boat.velocity, '\n res:',boat.sailAparentWind())
 
 

@@ -16,6 +16,41 @@ class Boat:
         #current boat position
         self.position = Vector(Angle(1,90),0)
 
+    def update(self,t=1): #t is in seconds
+        #update forces
+        #update velocities
+        #update position
+        pass
+
+    # def updateSailForces(self):
+    #     self.forces["sails"] = Vector(Angle(1,90),0)
+    #     for idx, sail in self.sails:
+    #         # self.forces["sails"] += sail.lift(self.sailAparentWind(idx))
+    #         # self.forces["sails"] += sail.drag(self.sailAparentWind(idx))
+    # def updateHullForces(self):
+    #     self.forces["hulls"] = Vector(Angle(1,90),0)
+    #     for idx, hull in self.hulls:
+    #         # self.forces["hulls"] += hull.lift(self.hullAparentWind(idx))
+    #         # self.forces["hulls"] += hull.drag(self.hullAparentWind(idx))
+
+    def sailLiftForce(self,idx=0):
+        aparentForce = self.sails[idx].liftForce(self.sailAparentWind(idx))
+        trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce.angle = Angle.norm(trueForce.angle)
+        return trueForce
+
+
+    def sailDragForce(self,idx=0):
+        aparentForce = self.sails[idx].dragForce(self.sailAparentWind(idx))
+        trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce.angle = Angle.norm(trueForce.angle)
+        return trueForce
+
+    def hullDragForce(self,idx=0):
+        aparentForce = self.hulls[idx].dragForce(self.hullAparentWind(idx))
+        trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce.angle = Angle.norm(trueForce.angle)
+        return trueForce
 
     def globalAparentWind(self):
         # returns global aparent wind on boat
@@ -25,6 +60,12 @@ class Boat:
         # returns local aparent wind on boat (ie: wind angle in perspective of given sail)
         ap = self.globalAparentWind()
         ap.angle = ap.angle-(self.sails[idx].angle+self.angle-Angle(1,90))
+        return ap
+
+    def hullAparentWind(self,idx=0):
+        # returns local aparent wind on boat (ie: wind angle in perspective of given sail)
+        ap = self.globalAparentWind()
+        ap.angle = ap.angle-(self.hulls[idx].angle+self.angle-Angle(1,90))
         return ap
 
     #TODO: maybe have a method for getting true wind angle from apparent wind for acutal boat

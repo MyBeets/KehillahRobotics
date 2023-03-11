@@ -20,14 +20,17 @@ class foil: # sail, foil, rudder
 
     def drag(self, aparentV):
         # the + Angle(1,180) is to flip the wind from direction pointing to direction of arrival
-        return (self.cd(aparentV.angle+Angle(1,180)) * self.mat * pow(aparentV.speed(),2) *self.area)/2
+        return (self.cd(Angle.norm(aparentV.angle+Angle(1,180))) * self.mat * pow(aparentV.speed(),2) *self.area)/2
 
     def lift(self, aparentV):
-        return (self.cl(aparentV.angle+Angle(1,180)) * self.mat * pow(aparentV.speed(),2) *self.area)/2
+        return (self.cl(Angle.norm(aparentV.angle+Angle(1,180))) * self.mat * pow(aparentV.speed(),2) *self.area)/2
 
-    # def liftForce(self, aparentV):
-    # #     if self.angle.
-    # #     return Vector(aparentV.angle+Angle(1,90))
+    def liftForce(self, aparentV):
+        if Angle.norm(self.angle).calc() <= Angle.norm(aparentV.angle+Angle(1,180)).calc():
+            return Vector(aparentV.angle+Angle(1,90),self.lift(aparentV))
+        else:
+            return Vector(aparentV.angle-Angle(1,90),self.lift(aparentV))
+
     def dragForce(self, aparentV):
         return Vector(aparentV.angle,self.drag(aparentV))
 

@@ -206,16 +206,71 @@ def BoatTest():
     pas+= boat.sailAparentWind().speed() == 10; fail+= boat.sailAparentWind().speed() != 10
     print("Local Aparent Wind, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
     pas = 0;fail = 0
+
     boat.angle = Angle(1,75)
     boat.sails[0].angle = Angle(1,70)
     wind.angle = Angle(1,0)
     aparentForce = boat.sails[0].dragForce(boat.sailAparentWind(0))
     aparentForce.angle += boat.angle + boat.sails[0].angle - Angle(1,90)
     aparentForce.angle = Angle.norm(aparentForce.angle)
-    print(aparentForce)
+    pas+= aparentForce.angle.calc() == 0; fail+= aparentForce.angle.calc() != 0
+    pas+= aparentForce.speed() == 1.2982186666666669; fail+= aparentForce.speed() != 1.2982186666666669
+    pas+= boat.sailDragForce().angle.calc() == 0; fail+= boat.sailDragForce().angle.calc() != 0
+    pas+= boat.sailDragForce().speed() == 1.2982186666666669; fail+= boat.sailDragForce().speed() != 1.2982186666666669
 
-    print("HULL+BOAT Forces, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+    boat.angle = Angle(1,155)
+    boat.sails[0].angle = Angle(1,10)
+    wind.angle = Angle(1,0)
+    aparentForce = boat.sails[0].dragForce(boat.sailAparentWind(0))
+    aparentForce.angle += boat.angle + boat.sails[0].angle - Angle(1,90)
+    aparentForce.angle = Angle.norm(aparentForce.angle)
+    pas+= aparentForce.angle.calc() == 0; fail+= aparentForce.angle.calc() != 0
+    pas+= aparentForce.speed() == 0.20036800000000002; fail+= aparentForce.speed() != 0.20036800000000002
+    pas+= boat.sailDragForce().angle.calc() == 0; fail+= boat.sailDragForce().angle.calc() != 0
+    pas+= boat.sailDragForce().speed() == 0.20036800000000002; fail+= boat.sailDragForce().speed() != 0.20036800000000002
+
+    boat.angle = Angle(1,155+90)
+    boat.sails[0].angle = Angle(1,10)
+    wind.angle = Angle(1,90)
+    aparentForce = boat.sails[0].dragForce(boat.sailAparentWind(0))
+    aparentForce.angle += boat.angle + boat.sails[0].angle - Angle(1,90)
+    aparentForce.angle = Angle.norm(aparentForce.angle)
+    pas+= aparentForce.angle.calc() == 90; fail+= aparentForce.angle.calc() != 90
+    pas+= aparentForce.speed() == 0.20036800000000002; fail+= aparentForce.speed() != 0.20036800000000002
+    pas+= boat.sailDragForce().angle.calc() == 90; fail+= boat.sailDragForce().angle.calc() != 90
+    pas+= boat.sailDragForce().speed() == 0.20036800000000002; fail+= boat.sailDragForce().speed() != 0.20036800000000002
+
+    print("HULL+BOAT \33[35mDrag\033[0m Forces, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
     pas = 0;fail = 0
+    boat.angle = Angle(1,75)
+    boat.sails[0].angle = Angle(1,70)
+    wind.angle = Angle(1,0)
+    pas+= boat.sailLiftForce().angle.calc() == 90; fail+= boat.sailLiftForce().angle.calc() != 90
+    pas+= boat.sailLiftForce().speed() == 8.605056; fail+= boat.sailLiftForce().speed() != 8.605056
+
+    boat.angle = Angle(1,15)
+    boat.sails[0].angle = Angle(1,75)
+    wind.angle = Angle(1,0)
+    pas+= boat.sailLiftForce().angle.calc() == 90; fail+= boat.sailLiftForce().angle.calc() != 90
+    pas+= boat.sailLiftForce().speed() == -0.717248; fail+= boat.sailLiftForce().speed() != -0.717248
+    pas+= boat.sailDragForce().angle.calc() == 0; fail+= boat.sailDragForce().angle.calc() != 0
+    pas+= boat.sailDragForce().speed() == 8.606912; fail+= boat.sailDragForce().speed() != 8.606912
+
+    boat.angle = Angle(1,15)
+    boat.sails[0].angle = Angle(1,-15)
+    wind.angle = Angle(1,90)
+    pas+= boat.sailLiftForce().angle.calc() == 0; fail+= boat.sailLiftForce().angle.calc() != 0
+    pas+= boat.sailLiftForce().speed() ==-0.717248; fail+= boat.sailLiftForce().speed() != -0.717248
+
+    #NOTE: TECHNICALLY THIS IS WRONG but the angle is correct, I don't have data for such extreme AOA but situation won't happen 
+    boat.angle = Angle(1,15)
+    boat.sails[0].angle = Angle(1,0)
+    wind.angle = Angle(1,90)
+    pas+= boat.sailLiftForce().angle.calc() == 180; fail+= boat.sailLiftForce().angle.calc() != 180
+    pas+= boat.sailLiftForce().speed() ==9.114135999999998; fail+= boat.sailLiftForce().speed() != 9.114135999999998
+    
+    print("HULL+BOAT \033[94mLift\033[0m Forces, passed: " + str(pas) + ", failed: " + str(fail)+ ", of: " +str(pas+fail) + color(fail))
+
     #print("wind: ",boat.wind,'\n vel: ',boat.velocity, '\n res:',boat.sailAparentWind())
 
 

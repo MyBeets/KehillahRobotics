@@ -85,7 +85,7 @@
     * Format: `Boat(hulls, sails, wind)`
         * Hulls: Array of hydrofoils
         * Sails: Array of sails
-        * Wind: Single Wind instance
+        * Wind: Single wind vector (vector represents wind so angles must be adjusted)
 * ### Global Aparent Wind:
     * Format: `boat.globalAparentWind()`
     * Returns `Vector` of the aparent wind in terms of global positioning

@@ -22,22 +22,17 @@ class Boat:
         #update position
         pass
 
-    # def updateSailForces(self):
-    #     self.forces["sails"] = Vector(Angle(1,90),0)
-    #     for idx, sail in self.sails:
-    #         # self.forces["sails"] += sail.lift(self.sailAparentWind(idx))
-    #         # self.forces["sails"] += sail.drag(self.sailAparentWind(idx))
-    # def updateHullForces(self):
-    #     self.forces["hulls"] = Vector(Angle(1,90),0)
-    #     for idx, hull in self.hulls:
-    #         # self.forces["hulls"] += hull.lift(self.hullAparentWind(idx))
-    #         # self.forces["hulls"] += hull.drag(self.hullAparentWind(idx))
+    def updateSailForces(self):
+        self.forces["sails"] = Vector(Angle(1,90),0)
+        for idx in range(len(self.sails)):
+            self.forces["sails"] += self.sailLiftForce(idx)
+            self.forces["sails"] += self.sailDragForce(idx)
+    def updateHullForces(self):
+        self.forces["hulls"] = Vector(Angle(1,90),0)
+        for idx in range(len(self.hulls)):
+            self.forces["hulls"] += self.hullLiftForce(idx)
+            self.forces["hulls"] += self.hullDragForce(idx)
 
-    def sailLiftForce(self,idx=0):
-        aparentForce = self.sails[idx].liftForce(self.sailAparentWind(idx))
-        trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle - Angle(1,90),aparentForce.norm)
-        trueForce.angle = Angle.norm(trueForce.angle)
-        return trueForce
 
 
     def sailDragForce(self,idx=0):
@@ -45,9 +40,19 @@ class Boat:
         trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle - Angle(1,90),aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce
+    def sailLiftForce(self,idx=0):
+        aparentForce = self.sails[idx].liftForce(self.sailAparentWind(idx))
+        trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce.angle = Angle.norm(trueForce.angle)
+        return trueForce
 
     def hullDragForce(self,idx=0):
         aparentForce = self.hulls[idx].dragForce(self.hullAparentWind(idx))
+        trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce.angle = Angle.norm(trueForce.angle)
+        return trueForce
+    def hullLiftForce(self,idx=0):
+        aparentForce = self.hulls[idx].liftForce(self.hullAparentWind(idx))
         trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle - Angle(1,90),aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce

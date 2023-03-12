@@ -18,7 +18,10 @@ class Boat:
 
     def update(self,t=1): #t is in seconds
         #update forces
+        self.updateSailForces()
+        self.updateHullForces()
         #update velocities
+        
         #update position
         pass
 

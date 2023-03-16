@@ -3,6 +3,7 @@ from Variables import *
 class foil: # sail, foil, rudder
     def __init__(self, datasheet, material, WA):
         self.datasheet = datasheet #string file location of csv
+        self.polygon = []
         self.mat = material # Density of the material the foil comes in contact to in kg/m^3
         self.area = WA #wetted hull or sail
         self.angle = Angle(1,0)# Relative angle to parent object (all is inline with boat)
@@ -11,12 +12,25 @@ class foil: # sail, foil, rudder
         if datasheet.find("naca")!= -1:
             self.liftC = self.read(self.datasheet,"Cl")
             self.dragC = self.read(self.datasheet,"Cd")
+            self.polygon = self.readPoly(datasheet)
         elif datasheet.find("mainSailCoeffs") != -1:
             self.liftC = self.read(self.datasheet,"clyc-CLhi")
             self.dragC = self.read(self.datasheet,"cdyc-CDhi")
         else:
             self.liftC = self.read(self.datasheet,"CL")
             self.dragC = self.read(self.datasheet,"CD")
+            self.polygon = self.readPoly(datasheet)
+        
+    def readPoly(self, datasheet):
+        datasheet = datasheet.replace("cvs","dat").replace("csv","dat")
+        sheet = open(datasheet,"r")
+        poly = []
+        for line in sheet:
+            print(line[0],line.split())
+            if type(line[0]) != str:
+                poly.append(line.split())
+        return poly
+        
 
     def drag(self, aparentV):
         # the + Angle(1,180) is to flip the wind from direction pointing to direction of arrival

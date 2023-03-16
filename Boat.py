@@ -2,7 +2,7 @@ import math
 from Variables import *
 
 class Boat:
-    def __init__(self, hulls, sails, wind):
+    def __init__(self, hulls, sails, wind, hull_placement = 0):
         self.hulls = hulls #array of hulls
         self.sails = sails
         self.wind = wind
@@ -15,13 +15,14 @@ class Boat:
 
         #current boat position
         self.position = Vector(Angle(1,90),0)
-
+    def setPos(self,pos):
+        self.position = pos
     def update(self,t=1): #t is in seconds
         #update forces
         self.updateSailForces()
         self.updateHullForces()
         #update velocities
-        
+
         #update position
         pass
 

@@ -1,5 +1,6 @@
 #Display and Map
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from matplotlib.widgets import Slider, Button
 from Map import regionPolygon
 #Boat and variables
@@ -17,11 +18,11 @@ class display:
         self.boat = boat
 
         #display
-        self.f, self.axes = plt.subplot_mosaic('AAABDD;AAACEE',per_subplot_kw={"B": {"projection": "polar"},},)
-        self.axes['B'].set_title('Sail Forces')
+        self.f, self.axes = plt.subplot_mosaic('AAA;AAA') #,per_subplot_kw={"B": {"projection": "polar"},},
+        # self.axes['B'].set_title('Sail Forces')
         self.map(location)
-        self.sailForces()
-        self.controls()
+        # self.sailForces()
+        # self.controls()
         #credits
         plt.figtext(0, 0.01, 'Map: © OpenStreetMap contributors', fontsize = 10)
         plt.show()
@@ -45,8 +46,8 @@ class display:
         self.axes['A'].set_title(location.split(" ")[0]+ " map")
         self.axes['A'].fill(x,y,'c')
         self.axes['A'].axis([min(x), max(x),min(y), max(y)])
-        plt.minorticks_on()
         self.axes['A'].grid()
+        self.axes['A'].add_patch(patches.Rectangle((self.boat.position.xcomp(),self.boat.position.ycomp()),0.0001,0.0001))
     def sailForces(self):
         self.boat.update()
         self.axes['B'].cla()
@@ -63,4 +64,7 @@ if __name__ == "__main__":
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1)
     wind = Vector(Angle(1,225),10) # Going South wind, 10 m/s
     boat = Boat([hull],[sail],wind)
-    render = display(lakeAttitash,boat)
+    xpos = -122.09064
+    ypos = 37.431749
+    boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
+    render = display(lakeShoreline,boat)

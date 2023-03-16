@@ -34,7 +34,7 @@ def regionPolygon(address):
 def downloadGrib(x1,y1,x2,y2):
     time = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
     print(time)
-    GRIB_URL="http://nomad.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs."+ time + "/gfs.t00z.pgrbf12.grib2"
+    GRIB_URL="http://nomad.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs."+ time + "/gfs.t00z.pgrbf"+12+".grib2"
 
 # def loadGrib(x1,y1,x2,y2):
 downloadGrib(0,0,0,0)

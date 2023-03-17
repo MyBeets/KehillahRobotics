@@ -50,20 +50,21 @@ def downloadGrib(name):
             print(f"{response.status_code} error when fetching latest GRIB")
             return 0
     
-    with open(name + ".grib2","w+", encoding="utf-8") as save:
+    with open(name + ".grib2.idx","w+", encoding="utf-8") as save:
         save.write(response.text)
     print(response)
 
-def loadGrib(file):
+def loadGrib(file,la1,lo1,la2,lo2):
     grib = pygrib.open(file)
     #print(dir(grib),grib.read(1))
-    grib.seek(1)
-    print(grib.tell())
-    # for g in grib:
-    #     print(g)
+    # data, lats, lons = grib.data(lat1=la1,lat2=la2,
+    #                         lon1=lo1,lon2=lo2)
+    for g in grib:
+        print(g.keys(),g.numberOfDataPoints)
+        break
 
 
-#loadGrib("test.grib2")
+loadGrib("2023030700.15.grb",-122.0955957, 37.4340436,-122.0880915, 37.432999)
 #print(datetime.now(timezone.utc).strftime('%H'))
-downloadGrib("test")
+#downloadGrib("test")
 #downloadGrib(datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S'))

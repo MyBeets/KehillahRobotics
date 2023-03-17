@@ -1,5 +1,6 @@
 import osmnx as ox
 import pygrib
+import requests
 from datetime import datetime, timezone
 
 def coord_lister(geom):
@@ -31,10 +32,38 @@ def regionPolygon(address):
 
 
 
-def downloadGrib(x1,y1,x2,y2):
-    time = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
-    print(time)
-    GRIB_URL="http://nomad.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs."+ time + "/gfs.t00z.pgrbf"+12+".grib2"
+def downloadGrib(name):
+    day = datetime.now(timezone.utc).strftime('%Y%m%d')
+    #GRIB_URL="http://nomad.ncep.noaa.gov/pub/data/nccf/com/gfs/prod/gfs."+ time + "/gfs.t00z.pgrbf"+str(forcast)+".grib2"
+    #vlmgrib = "http://grib.v-l-m.org/latest.grb"
+    forcast = 10
+    hour = datetime.now(timezone.utc).strftime('%H')
+    url = "https://nomads.ncep.noaa.gov/pub/data/nccf/com/rap/prod/rap."+day+"/rap.t"+hour+"z.wrfprsf"+str(forcast)+".grib2"
+    response = requests.get(url)
+    if response.status_code != 200:
+        while response.status_code != 200 and int(hour)>=0:
+            hour = str(int(hour)-1).rjust(2, '0')
+            print("fetching earlier::", hour)
+            url = "https://nomads.ncep.noaa.gov/pub/data/nccf/com/rap/prod/rap."+day+"/rap.t"+hour+"z.wrfprsf"+str(forcast)+".grib2"
+            response = requests.get(url)
+        if int(hour) <0:
+            print(f"{response.status_code} error when fetching latest GRIB")
+            return 0
+    
+    with open(name + ".grib2","w+", encoding="utf-8") as save:
+        save.write(response.text)
+    print(response)
 
-# def loadGrib(x1,y1,x2,y2):
-downloadGrib(0,0,0,0)
+def loadGrib(file):
+    grib = pygrib.open(file)
+    #print(dir(grib),grib.read(1))
+    grib.seek(1)
+    print(grib.tell())
+    # for g in grib:
+    #     print(g)
+
+
+#loadGrib("test.grib2")
+#print(datetime.now(timezone.utc).strftime('%H'))
+downloadGrib("test")
+#downloadGrib(datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S'))

@@ -1,13 +1,13 @@
 from Variables import *
 
 class foil: # sail, foil, rudder
-    def __init__(self, datasheet, material, WA):
+    def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0)):
         self.datasheet = datasheet #string file location of csv
         self.polygon = []
         self.mat = material # Density of the material the foil comes in contact to in kg/m^3
         self.area = WA #wetted hull or sail
         self.angle = Angle(1,0)# Relative angle to parent object (all is inline with boat)
-
+        self.position = position
         # liftC and dragC just contain key (direction), value (coeffeciant) pairs
         if datasheet.find("naca")!= -1:
             self.liftC = self.read(self.datasheet,"Cl")
@@ -26,11 +26,13 @@ class foil: # sail, foil, rudder
         sheet = open(datasheet,"r")
         poly = []
         for line in sheet:
-            print(line[0],line.split())
-            if type(line[0]) != str:
-                poly.append(line.split())
+            if line[0].isnumeric():
+                poly.append([float(i) for i in line.split()])
         return poly
         
+    def moment(self,aparentV):
+        force = self.liftForce(aparentV)+self.dragForce(aparentV)
+        return self.position.norm*force.norm*math.sin((force.angle-self.angle).calc()*math.pi/180)
 
     def drag(self, aparentV):
         # the + Angle(1,180) is to flip the wind from direction pointing to direction of arrival

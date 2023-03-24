@@ -130,6 +130,11 @@ class Vector():
         dx = self.xcomp() + x.xcomp() + 0.0000000001
         dy = self.ycomp() + x.ycomp()
         return Vector(Angle(1, round(math.atan2(dy,dx)*180/math.pi*10000)/10000),round(math.sqrt(dx*dx+dy*dy)*10000)/10000)
+    def __mul__(self,x):
+        if not type(x) == int or not type(x) == float:
+            raise Exception("Vector class currently doesn't support non scalar multiplication")
+        else:
+            self.norm *= x
     def __sub__(self,x):
         y = copy.deepcopy(x)
         y.norm = -y.norm

@@ -1,7 +1,7 @@
 from Variables import *
 
 class foil: # sail, foil, rudder
-    def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0)):
+    def __init__(self, datasheet, material, WA, position = 0):
         self.datasheet = datasheet #string file location of csv
         self.polygon = []
         self.mat = material # Density of the material the foil comes in contact to in kg/m^3
@@ -30,9 +30,8 @@ class foil: # sail, foil, rudder
                 poly.append([float(i) for i in line.split()])
         return poly
         
-    def moment(self,aparentV):
-        force = self.liftForce(aparentV)+self.dragForce(aparentV)
-        return self.position.norm*force.norm*math.sin((force.angle-self.angle).calc()*math.pi/180)
+    def moment(self,force,angle):
+        return self.position*force.norm*math.sin((force.angle-(angle+self.angle)).calc()*math.pi/180)
 
     def drag(self, aparentV):
         # the + Angle(1,180) is to flip the wind from direction pointing to direction of arrival

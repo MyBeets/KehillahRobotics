@@ -54,7 +54,7 @@ def downloadGrib(name):
         save.write(response.text)
     print(response)
 
-def loadGrib(file,la1,lo1,la2,lo2):
+def loadGrib(file):
     grib = pygrib.open(file)
     wind = {}
     #print(dir(grib),grib.read(1))
@@ -64,20 +64,25 @@ def loadGrib(file,la1,lo1,la2,lo2):
     # print(grib.keys())
     # print(grib.WMO)
     for g in grib:
-        latitude = [*set(g.latitudes)]
-        longitudes = [*set(g.longitudes)]
+        #print(list(g.latLonValues))
+        #print(g.distinctLatitudes)
+        latitude = list(g.distinctLatitudes)
+        longitudes = list(g.distinctLongitudes)
+        #print(list(zip(latitude,longitudes)))
         for la in range(len(latitude)):
             for lo in range(len(longitudes)):
                 #print(np.array(g.values).shape,len(latitude),g.numberOfValues)
-                if (str(latitude[la])+"N"+str(longitudes[lo])+"E") in wind:
-                    wind[str(latitude[la])+"N"+str(longitudes[lo])+"E"].update({g.parameterName[:1]: np.array(g.values)[la][lo]})
+                if (str(longitudes[lo])+"E"+str(latitude[la])+"N") in wind:
+                    wind[(str(longitudes[lo])+"E"+str(latitude[la])+"N")].update({g.parameterName[:1]: np.array(g.values)[la][lo]})
                 else:
-                    wind[str(latitude[la])+"N"+str(longitudes[lo])+"E"] = {g.parameterName[:1]: np.array(g.values)[la][lo]}
+                    wind[(str(longitudes[lo])+"E"+str(latitude[la])+"N")] = {g.parameterName[:1]: np.array(g.values)[la][lo]}
+        if la %2 == 0:
+            break
     return wind
     #print(grib.select(name="V V-component of wind m s**-1"))
 
 
-loadGrib("2023030700.15.grb",-122.0955957, 37.4340436,-122.0880915, 37.432999)
+loadGrib("2023030700.15.grb")
 #print(datetime.now(timezone.utc).strftime('%H'))
 #downloadGrib("test")
 #downloadGrib(datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S'))

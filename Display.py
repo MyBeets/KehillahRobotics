@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.widgets import Slider, Button
-from Map import regionPolygon
+from Map import regionPolygon, loadGrib
 #Boat and variables
 from Foil import foil
 from Variables import *
@@ -44,10 +44,27 @@ class display:
         x = [i[0] for i in cords]
         y = [i[1] for i in cords]
         self.axes['A'].set_title(location.split(" ")[0]+ " map")
-        self.axes['A'].fill(x,y,'c')
+        self.axes['A'].fill(x,y,'b')
         self.axes['A'].axis([min(x), max(x),min(y), max(y)])
         self.axes['A'].grid()
-        self.axes['A'].add_patch(patches.Rectangle((self.boat.position.xcomp(),self.boat.position.ycomp()),0.0001,0.0001))
+        x,y = self.boatDisplay()
+        print(x,y)
+        self.axes['A'].fill(x,y,'r')
+        #self.axes['A'].add_patch(patches.Rectangle((self.boat.position.xcomp(),self.boat.position.ycomp()),0.0001,0.0001))
+        # wind = loadGrib("2023030700.15.grb")
+        # for (k,v) in wind.items():
+        #     print([float(n) for n in k.replace("E", " ").replace("N","").split()])
+        #     self.axes['A'].add_patch(patches.Rectangle([float(n) for n in k.replace("E", " ").replace("N","").split()],0.01,0.01))
+    def boatDisplay(self):
+        scale = 1.8#m
+        cords = self.boat.hulls[0].polygon
+        x = [self.meter2degree(i[0]*scale)+self.boat.position.xcomp() for i in cords]
+        y = [self.meter2degree(i[1]*scale)+self.boat.position.ycomp() for i in cords]
+        return x,y
+    def meter2degree(self, v):
+        return v*90/1000000
+        return v/111111
+
     def sailForces(self):
         self.boat.update()
         self.axes['B'].cla()

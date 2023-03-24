@@ -266,7 +266,6 @@ def BoatTest():
     boat.angle = Angle(1,15)
     boat.sails[0].angle = Angle(1,0)
     wind.angle = Angle(1,90)
-    print(boat.sailAparentWind(0))
     pas+= boat.sailLiftForce().angle.calc() == 180; fail+= boat.sailLiftForce().angle.calc() != 180
     pas+= boat.sailLiftForce().speed() ==9.114135999999998; fail+= boat.sailLiftForce().speed() != 9.114135999999998
 

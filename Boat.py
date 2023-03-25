@@ -28,7 +28,23 @@ class Boat:
         #update velocities
         self.updateLinearVelocity(dt)
         self.updateRotationalVelocity(dt)
-        #update position
+        #update position and rotation
+        self.updatePosition(dt)
+        self.updateRotation(dt)
+
+    def updatePosition(self, dt):
+        ax = (sum(self.forces["sails"])+sum(self.forces["hulls"])).xcomp()/self.mass
+        ay = (sum(self.forces["sails"])+sum(self.forces["hulls"])).ycomp()/self.mass
+        a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*10000)/10000),math.sqrt(ax**2+ay**2))
+        #d = v*dt +1/2*a*dt^2
+        self.position += self.linearVelocity*dt+(a*dt**2)/2
+    
+    def updateRotation(self, dt):
+        sMoments = sum(self.moments["sails"]) + sum(self.moments["hulls"])
+        sI = sum([h.rotInertia for h in self.hulls]) + sum([s.rotInertia for s in self.sails])
+        alfa = sMoments/sI
+        #d theta = w*dt +1/2*alfa*dt^2
+        self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
 
     def updateLinearVelocity(self,dt):
         #not using extend is on purpose, extend modifies the variable

@@ -88,11 +88,11 @@
 # Boat Class
 * ### Boat holds various foils together, manages position and crucially: velocity, wind, aparent wind/water for foils, and forces
 * ### Construtor:
-    * Format: `Boat(hulls, sails, wind, position =0)`
+    * Format: `Boat(hulls, sails, wind, position = Vector(Angle(1,0),0))`
         * Hulls: Array of hydrofoils
         * Sails: Array of sails
         * Wind: Single wind `Vector` (vector represents wind so angles must be adjusted)
-        * Position: integer or float that represents distance between center of mass of hull and center of mass of parent object
+        * Position: relative position to parent object in `Vector` format.
 * ### Global Aparent Wind:
     * Format: `boat.globalAparentWind()`
     * Returns `Vector` of the aparent wind in terms of global positioning

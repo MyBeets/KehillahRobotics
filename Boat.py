@@ -2,11 +2,12 @@ import math
 from Variables import *
 
 class Boat:
-    def __init__(self, hulls, sails, wind,mass =10):
+    def __init__(self, hulls, sails, wind,mass =10, rotInertia = -1):
         self.hulls = hulls #array of hulls
         self.sails = sails
         self.wind = wind
         self.mass = mass # mass in in kg
+        self.I = rotInertia # rotational inertia
         self.angle = Angle(1,90) # global rotation of boat and all it's parts
         #Forces on the boat
         self.forces = {"sails":Vector(Angle(1,90),0), "hulls":Vector(Angle(1,90),0)}
@@ -37,7 +38,9 @@ class Boat:
         a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*10000)/10000),math.sqrt(ax**2+ay**2))
         a *= dt
         self.linearVelocity += a
+
     def updateRotationalVelocity(self,t):
+        #Sum of the torque = I ( rotational inertia) * alfa (angular acceleration)
         pass
 
     def updateSailForcesandMoments(self):
@@ -46,7 +49,7 @@ class Boat:
         for idx in range(len(self.sails)):
             force = self.sailLiftForce(idx) + self.sailDragForce(idx)
             self.forces["sails"] += force
-            self.moments["sails"] += self.sails[idx].moment(force,self.angle) # slightly ridiculous for a sail but could be usefull
+            self.moments["sails"] += self.sails[idx].moment(force) # slightly ridiculous for a sail but could be usefull
 
     def updateHullForcesandMoments(self):
         self.forces["hulls"] = Vector(Angle(1,90),0)
@@ -54,9 +57,7 @@ class Boat:
         for idx in range(len(self.hulls)):
             force = self.hullLiftForce(idx) + self.hullDragForce(idx)
             self.forces["hulls"] += force
-            self.moments["hulls"] += self.hulls[idx].moment(force,self.angle)
-
-
+            self.moments["hulls"] += self.hulls[idx].moment(force)
 
     def sailDragForce(self,idx=0):
         aparentForce = self.sails[idx].dragForce(self.sailAparentWind(idx))

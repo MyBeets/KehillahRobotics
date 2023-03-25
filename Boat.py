@@ -2,12 +2,11 @@ import math
 from Variables import *
 
 class Boat:
-    def __init__(self, hulls, sails, wind,mass =10, rotInertia = -1):
+    def __init__(self, hulls, sails, wind,mass =10):
         self.hulls = hulls #array of hulls
         self.sails = sails
         self.wind = wind
         self.mass = mass # mass in in kg
-        self.I = rotInertia # rotational inertia
         self.angle = Angle(1,90) # global rotation of boat and all it's parts
         #Forces on the boat
         self.forces = {"sails":Vector(Angle(1,90),0), "hulls":Vector(Angle(1,90),0)}
@@ -33,15 +32,20 @@ class Boat:
 
     def updateLinearVelocity(self,dt):
         #not using extend is on purpose, extend modifies the variable
+        #vf=v0+a*dt
         ax = (sum(self.forces["sails"])+sum(self.forces["hulls"])).xcomp()/self.mass
         ay = (sum(self.forces["sails"])+sum(self.forces["hulls"])).ycomp()/self.mass
         a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*10000)/10000),math.sqrt(ax**2+ay**2))
         a *= dt
         self.linearVelocity += a
 
-    def updateRotationalVelocity(self,t):
-        #Sum of the torque = I ( rotational inertia) * alfa (angular acceleration)
-        pass
+    def updateRotationalVelocity(self,dt):
+        #Sum of the torque = I ( rotational inertia) * alfa (angular acceleration) thus alfa = sum of torque / I, and then classic angular kinematics
+        #wf=w0+alfa*dt
+        sMoments = sum(self.moments["sails"]) + sum(self.moments["hulls"])
+        sI = sum([h.rotInertia for h in self.hulls]) + sum([s.rotInertia for s in self.sails])
+        alfa = sMoments/sI
+        self.rotationalVelocity += alfa*dt
 
     def updateSailForcesandMoments(self):
         self.forces["sails"] = Vector(Angle(1,90),0)
@@ -49,7 +53,7 @@ class Boat:
         for idx in range(len(self.sails)):
             force = self.sailLiftForce(idx) + self.sailDragForce(idx)
             self.forces["sails"] += force
-            self.moments["sails"] += self.sails[idx].moment(force) # slightly ridiculous for a sail but could be usefull
+            self.moments["sails"] += self.sails[idx].moment(force) # slightly unnecessary for a sail but could be usefull
 
     def updateHullForcesandMoments(self):
         self.forces["hulls"] = Vector(Angle(1,90),0)

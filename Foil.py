@@ -1,13 +1,14 @@
 from Variables import *
 
 class foil: # sail, foil, rudder
-    def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0)):
+    def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0),rotInertia = -1):
         self.datasheet = datasheet #string file location of csv
         self.polygon = []
         self.mat = material # Density of the material the foil comes in contact to in kg/m^3
         self.area = WA #wetted hull or sail
         self.angle = Angle(1,0)# Relative angle to parent object (all is inline with boat)
         self.position = position
+        self.I = rotInertia # rotational inertia
         # liftC and dragC just contain key (direction), value (coeffeciant) pairs
         if datasheet.find("naca")!= -1:
             self.liftC = self.read(self.datasheet,"Cl")

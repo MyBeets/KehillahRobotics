@@ -1,9 +1,10 @@
 from Variables import *
 
 class foil: # sail, foil, rudder
-    def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0),rotInertia = -1):
+    def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0),rotInertia = -1,size = 1.8):
         self.datasheet = datasheet #string file location of csv
         self.polygon = []
+        self.size = size #LOA of hull in meter
         self.mat = material # Density of the material the foil comes in contact to in kg/m^3
         self.area = WA #wetted hull or sail
         self.angle = Angle(1,0)# Relative angle to parent object (all is inline with boat)

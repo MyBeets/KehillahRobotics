@@ -1,5 +1,6 @@
 #Display and Map
 import matplotlib.pyplot as plt
+import matplotlib.transforms as transforms
 import matplotlib.patches as patches
 from matplotlib.widgets import Slider, Button
 from Map import regionPolygon, loadGrib
@@ -10,35 +11,38 @@ from Boat import Boat
 #Other
 import os
 import math
-
 data_dir = os.path.dirname(__file__) #abs dir
+
+class boatDisplayShell():
+    def __init__(self,Boat,ax):
+        self.ax = ax
+        self.boat = Boat
+    def show(self):
+        for h in self.boat.hulls:
+            verts = [(self.meter2degree(i[0]*h.size +h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(i[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for i in h.polygon]
+            polygon = patches.Polygon(verts, color="red") 
+            #NOTE YOU"LL NEED TO ADD A REAL CENTER OF MASS FUNCTIONALITY
+            r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp()+self.meter2degree(h.position.xcomp()),self.boat.position.ycomp()+self.meter2degree(h.position.ycomp()),(self.boat.angle+h.angle).display())
+            polygon.set_transform(r+ self.ax.transData)
+            print(polygon)
+            self.ax.add_patch(polygon)
+    def meter2degree(self, v):
+        return v*90/1000000
+        return v/111111
+
 
 class display:
     def __init__(self,location,boat):
-        self.boat = boat
-
-        #display
         self.f, self.axes = plt.subplot_mosaic('AAA;AAA') #,per_subplot_kw={"B": {"projection": "polar"},},
+        self.boat = boatDisplayShell(boat,self.axes['A'])
         # self.axes['B'].set_title('Sail Forces')
         self.map(location)
+        self.boat.show()
         # self.sailForces()
         # self.controls()
         #credits
         plt.figtext(0, 0.01, 'Map: © OpenStreetMap contributors', fontsize = 10)
         plt.show()
-    def controls(self):
-        self.axes['D'].axis('off')
-        self.windSlider = Slider(
-            ax=self.f.add_axes([2/3+0.1, 0.75, 0.1, 0.03]),
-            label="Wind ",
-            valmin=0,
-            valmax=360,
-            valinit=0,
-        )
-        self.windSlider.on_changed(self.windUpdate)
-    def windUpdate(self,val):
-        self.boat.wind.angle = Angle(1,val)
-        self.sailForces()
     def map(self,location):
         cords = regionPolygon(location)
         x = [i[0] for i in cords]
@@ -47,40 +51,17 @@ class display:
         self.axes['A'].fill(x,y,'b')
         self.axes['A'].axis([min(x), max(x),min(y), max(y)])
         self.axes['A'].grid()
-        x,y = self.boatDisplay()
-        print(x,y)
-        self.axes['A'].fill(x,y,'r')
-        #self.axes['A'].add_patch(patches.Rectangle((self.boat.position.xcomp(),self.boat.position.ycomp()),0.0001,0.0001))
-        # wind = loadGrib("2023030700.15.grb")
-        # for (k,v) in wind.items():
-        #     print([float(n) for n in k.replace("E", " ").replace("N","").split()])
-        #     self.axes['A'].add_patch(patches.Rectangle([float(n) for n in k.replace("E", " ").replace("N","").split()],0.01,0.01))
-    def boatDisplay(self):
-        scale = 1.8#m
-        cords = self.boat.hulls[0].polygon
-        x = [self.meter2degree(i[0]*scale)+self.boat.position.xcomp() for i in cords]
-        y = [self.meter2degree(i[1]*scale)+self.boat.position.ycomp() for i in cords]
-        return x,y
-    def meter2degree(self, v):
-        return v*90/1000000
-        return v/111111
-
-    def sailForces(self):
-        self.boat.update()
-        self.axes['B'].cla()
-        #self.sailf.set_ydata([0,self.boat.forces['sails'].norm])
-        #self.sailf.set_xdata([Angle.norm(self.boat.forces['sails'].angle).calc()*math.pi/180]*2)
-        self.axes['B'].plot([Angle.norm(self.boat.forces['sails'].angle).calc()*math.pi/180]*2,[0,self.boat.forces['sails'].norm],marker= "o")
-
 
 if __name__ == "__main__":
     lakeAttitash = "Lake Attitash, Amesbury, Essex County, Massachusetts, USA"
     lakeShoreline = "Shoreline lake, Mountain View, Santa Clara County, California, United States"
 
-    hull = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5)
+    vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5,rotInertia = 1,size = 1.8)
+    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,0),0.6),rotInertia = 1,size = 1.5)
+    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,180),0.6),rotInertia = 1,size = 1.5)
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1)
     wind = Vector(Angle(1,225),10) # Going South wind, 10 m/s
-    boat = Boat([hull],[sail],wind)
+    boat = Boat([ama1,vaka,ama2],[sail],wind)
     xpos = -122.09064
     ypos = 37.431749
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))

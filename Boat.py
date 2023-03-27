@@ -112,9 +112,8 @@ class Boat:
         return ap
 
     def hullAparentWind(self,idx=0):
-        # returns local aparent wind on boat (ie: wind angle in perspective of given sail)
-        ap = self.globalAparentWind()
-        ap.angle = ap.angle-(self.hulls[idx].angle+self.angle-Angle(1,90))
-        return ap
+        # returns aparent water velocity on a hull 
+        #TODO
+        pass
 
     #TODO: maybe have a method for getting true wind angle from apparent wind for acutal boat

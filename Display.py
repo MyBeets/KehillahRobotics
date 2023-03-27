@@ -24,7 +24,7 @@ class boatDisplayShell():
             verts = [(self.meter2degree(i[0]*h.size +h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(i[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for i in h.polygon]
             polygon = patches.Polygon(verts, color="red") 
             #NOTE YOU"LL NEED TO ADD A REAL CENTER OF MASS FUNCTIONALITY
-            r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp()+self.meter2degree(h.position.xcomp()),self.boat.position.ycomp()+self.meter2degree(h.position.ycomp()),(self.boat.angle+h.angle).display())
+            r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp()+self.meter2degree(h.position.xcomp()),self.boat.position.ycomp()+self.meter2degree(h.position.ycomp()),(self.boat.angle+h.angle).calc())
             polygon.set_transform(r+ self.ax.transData)
             self.ax.add_patch(polygon)
             if len(self.boat.hulls) > 1:
@@ -40,8 +40,8 @@ class boatDisplayShell():
             #x1, y1 are the points on the mast
             x1 = self.boat.position.xcomp()+self.meter2degree(math.cos((boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
             y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
-            x2 = x1+self.meter2degree(math.cos((self.boat.angle.display()+s.angle.display())*math.pi/180)*s.size)
-            y2 = y1+self.meter2degree(math.sin((self.boat.angle.display()+s.angle.display())*math.pi/180)*s.size)
+            x2 = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
+            y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
             self.ax.plot([x1,x2],[y1,y2], color = 'yellow')
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
 
@@ -80,6 +80,8 @@ if __name__ == "__main__":
     ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,0),0.6),rotInertia = 1,size = 1.5)
     ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,180),0.6),rotInertia = 1,size = 1.5)
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
+    sail.angle += Angle(1,10)
+    print(sail.angle)
     wind = Vector(Angle(1,225),10) # Going South wind, 10 m/s
     boat = Boat([ama1,vaka,ama2],[sail],wind)
     xpos = -122.09064

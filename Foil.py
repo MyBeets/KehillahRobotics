@@ -30,6 +30,7 @@ class foil: # sail, foil, rudder
         for line in sheet:
             if line[0].isnumeric():
                 poly.append([float(i) for i in line.split()])
+                poly[-1][0] = -poly[-1][0]+0.5
         return poly
         
     def moment(self,force):

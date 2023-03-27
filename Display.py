@@ -24,8 +24,20 @@ class boatDisplayShell():
             #NOTE YOU"LL NEED TO ADD A REAL CENTER OF MASS FUNCTIONALITY
             r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp()+self.meter2degree(h.position.xcomp()),self.boat.position.ycomp()+self.meter2degree(h.position.ycomp()),(self.boat.angle+h.angle).display())
             polygon.set_transform(r+ self.ax.transData)
-            print(polygon)
             self.ax.add_patch(polygon)
+
+        for s in self.boat.sails:
+            #x1, y1 are the points on the mast
+            x1 = self.boat.position.xcomp()+self.meter2degree(math.cos((boat.angle.calc()+s.position.angle.calc())*math.pi/180)*s.position.norm)
+            y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((boat.angle.calc()+s.position.angle.calc())*math.pi/180)*s.position.norm)
+            print(math.sin(boat.angle.calc()+s.position.angle.calc()*math.pi/180),math.cos(boat.angle.calc()+s.position.angle.calc()*math.pi/180))
+            print(x1,y1,self.boat.position.ycomp())
+            self.ax.plot([x1,self.boat.position.xcomp()],[y1,self.boat.position.ycomp()], color = 'yellow')
+            self.ax.plot([self.boat.position.xcomp()],[self.boat.position.ycomp()], color = 'pink', marker="o", markersize=5)
+            #self.ax.plot(self.boat.position.xcomp(),self.boat.position.ycomp(), color = 'g')
+            #verts = [(x1,y1),()]
+
+
     def meter2degree(self, v):
         return v*90/1000000
         return v/111111
@@ -59,7 +71,7 @@ if __name__ == "__main__":
     vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5,rotInertia = 1,size = 1.8)
     ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,0),0.6),rotInertia = 1,size = 1.5)
     ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,180),0.6),rotInertia = 1,size = 1.5)
-    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1)
+    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 1.2)
     wind = Vector(Angle(1,225),10) # Going South wind, 10 m/s
     boat = Boat([ama1,vaka,ama2],[sail],wind)
     xpos = -122.09064

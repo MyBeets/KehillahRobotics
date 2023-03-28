@@ -17,7 +17,11 @@ class boatDisplayShell():
     def __init__(self,Boat,ax):
         self.ax = ax
         self.boat = Boat
-    def show(self):
+        self.createBoat()
+    def createBoat(self):
+        self.hullDisplay = []
+        self.sailDisplay = []
+        self.connections = []
         cx = -1
         cy = -1
         for h in self.boat.hulls:
@@ -27,23 +31,28 @@ class boatDisplayShell():
             r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp()+self.meter2degree(h.position.xcomp()),self.boat.position.ycomp()+self.meter2degree(h.position.ycomp()),(self.boat.angle+h.angle).calc())
             polygon.set_transform(r+ self.ax.transData)
             self.ax.add_patch(polygon)
+            # print(polygon)
+            # self.ax.add_patch(polygon)
+            #self.hullDisplay.append(self.ax.add_patch(polygon))
             if len(self.boat.hulls) > 1:
                 if cx == -1:
                     cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
                     cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
                 else:
-                    self.ax.plot([cx,self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())],[cy,self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())], color = 'gray')
+                    self.connections.append(self.ax.plot([cx,self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())],[cy,self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())], color = 'gray'))
                     cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
                     cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
-
+        #print(dir(self.hullDisplay[0]))
         for s in self.boat.sails:
             #x1, y1 are the points on the mast
-            x1 = self.boat.position.xcomp()+self.meter2degree(math.cos((boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
-            y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
+            x1 = self.boat.position.xcomp()+self.meter2degree(math.cos((self.boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
+            y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((self.boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
             x2 = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
             y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
-            self.ax.plot([x1,x2],[y1,y2], color = 'yellow')
+            self.sailDisplay.append(self.ax.plot([x1,x2],[y1,y2], color = 'yellow'))
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
+    def update(self):
+        pass
 
 
     def meter2degree(self, v):
@@ -54,12 +63,11 @@ class boatDisplayShell():
 class display:
     def __init__(self,location,boat):
         self.f, self.axes = plt.subplot_mosaic('AAA;AAA') #,per_subplot_kw={"B": {"projection": "polar"},},
-        self.boat = boatDisplayShell(boat,self.axes['A'])
         # self.axes['B'].set_title('Sail Forces')
         self.map(location)
-        self.boat.show()
-        # self.sailForces()
-        # self.controls()
+        self.boat = boatDisplayShell(boat,self.axes['A'])
+        #self.boat.update()
+        
         #credits
         plt.figtext(0, 0.01, 'Map: © OpenStreetMap contributors', fontsize = 10)
         plt.show()

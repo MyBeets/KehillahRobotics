@@ -114,6 +114,13 @@ class Boat:
     def hullAparentWind(self,idx=0):
         # returns aparent water velocity on a hull 
         #TODO
-        pass
+        #First get current angular velocity (tangential to roation)
+        V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
+        #Then combine with linear velocity
+        V += self.linearVelocity
+        #Finally make aparent
+        V.angle -= self.hulls[idx].angle
+        V.angle += Angle(1,180) #flip it
+        return V
 
     #TODO: maybe have a method for getting true wind angle from apparent wind for acutal boat

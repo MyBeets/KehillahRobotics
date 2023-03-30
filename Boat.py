@@ -10,7 +10,7 @@ class Boat:
         self.angle = Angle(1,90) # global rotation of boat and all it's parts
         #Forces on the boat
         self.forces = {"sails":Vector(Angle(1,90),0), "hulls":Vector(Angle(1,90),0)}
-        self.moments = {"sails":Vector(Angle(1,90),0), "hulls":Vector(Angle(1,90),0)}
+        self.moments = {"sails":0, "hulls":0}
 
         #current boat velocities
         self.linearVelocity = Vector(Angle(1,90),0) # m/s
@@ -33,15 +33,20 @@ class Boat:
         self.updateRotation(dt)
 
     def updatePosition(self, dt):
-        ax = (sum(self.forces["sails"])+sum(self.forces["hulls"])).xcomp()/self.mass
-        ay = (sum(self.forces["sails"])+sum(self.forces["hulls"])).ycomp()/self.mass
+        ax = (self.forces["sails"]+self.forces["hulls"]).xcomp()/self.mass
+        ay = (self.forces["sails"]+self.forces["hulls"]).ycomp()/self.mass
         a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*10000)/10000),math.sqrt(ax**2+ay**2))
         #d = v*dt +1/2*a*dt^2
-        self.position += self.linearVelocity*dt+(a*dt**2)/2
+        self.position += self.meter2degree(self.linearVelocity*dt+(a*(dt**2))*0.5)
+
+    def meter2degree(self, vect):
+        vect.norm *= 90/1000000
+        return vect
+        return v/111111
     
     def updateRotation(self, dt):
-        sMoments = sum(self.moments["sails"]) + sum(self.moments["hulls"])
-        sI = sum([h.rotInertia for h in self.hulls]) + sum([s.rotInertia for s in self.sails])
+        sMoments = self.moments["sails"] + self.moments["hulls"]
+        sI = sum([h.I for h in self.hulls]) + sum([s.I for s in self.sails])
         alfa = sMoments/sI
         #d theta = w*dt +1/2*alfa*dt^2
         self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
@@ -49,8 +54,8 @@ class Boat:
     def updateLinearVelocity(self,dt):
         #not using extend is on purpose, extend modifies the variable
         #vf=v0+a*dt
-        ax = (sum(self.forces["sails"])+sum(self.forces["hulls"])).xcomp()/self.mass
-        ay = (sum(self.forces["sails"])+sum(self.forces["hulls"])).ycomp()/self.mass
+        ax = (self.forces["sails"]+self.forces["hulls"]).xcomp()/self.mass
+        ay = (self.forces["sails"]+self.forces["hulls"]).ycomp()/self.mass
         a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*10000)/10000),math.sqrt(ax**2+ay**2))
         a *= dt
         self.linearVelocity += a
@@ -58,14 +63,14 @@ class Boat:
     def updateRotationalVelocity(self,dt):
         #Sum of the torque = I ( rotational inertia) * alfa (angular acceleration) thus alfa = sum of torque / I, and then classic angular kinematics
         #wf=w0+alfa*dt
-        sMoments = sum(self.moments["sails"]) + sum(self.moments["hulls"])
-        sI = sum([h.rotInertia for h in self.hulls]) + sum([s.rotInertia for s in self.sails])
+        sMoments = self.moments["sails"] + self.moments["hulls"]
+        sI = sum([h.I for h in self.hulls]) + sum([s.I for s in self.sails])
         alfa = sMoments/sI
         self.rotationalVelocity += alfa*dt
 
     def updateSailForcesandMoments(self):
         self.forces["sails"] = Vector(Angle(1,90),0)
-        self.moments["sails"] = Vector(Angle(1,90),0)
+        self.moments["sails"] = 0
         for idx in range(len(self.sails)):
             force = self.sailLiftForce(idx) + self.sailDragForce(idx)
             self.forces["sails"] += force
@@ -73,7 +78,7 @@ class Boat:
 
     def updateHullForcesandMoments(self):
         self.forces["hulls"] = Vector(Angle(1,90),0)
-        self.moments["hulls"] = Vector(Angle(1,90),0)
+        self.moments["hulls"] = 0
         for idx in range(len(self.hulls)):
             force = self.hullLiftForce(idx) + self.hullDragForce(idx)
             self.forces["hulls"] += force

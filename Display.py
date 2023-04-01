@@ -12,6 +12,8 @@ from Boat import Boat
 #Other
 import os
 import math
+import copy
+
 data_dir = os.path.dirname(__file__) #abs dir
 
 class boatDisplayShell():
@@ -27,10 +29,14 @@ class boatDisplayShell():
         cx = -1
         cy = -1
         for h in self.boat.hulls:
-            verts = [(self.meter2degree(i[0]*h.size +h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(i[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for i in h.polygon]
+            # hpos = copy.deepcopy(h.position)
+            # hpos.angle += self.boat.angle
+            verts = [(self.meter2degree(i[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(i[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for i in h.polygon]
             polygon = patches.Polygon(verts, color="red") 
             #NOTE YOU"LL NEED TO ADD A REAL CENTER OF MASS FUNCTIONALITY
-            r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp()+self.meter2degree(h.position.xcomp()),self.boat.position.ycomp()+self.meter2degree(h.position.ycomp()),(self.boat.angle+h.angle).calc())
+            r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+h.angle).calc())
+            #t = transforms.Affine2D().translate(self.meter2degree(h.position.xcomp()),self.meter2degree(h.position.ycomp()))
+            #print(self.meter2degree(h.position.xcomp()),self.meter2degree(h.position.ycomp()))
             polygon.set_transform(r+ self.ax.transData)
             self.hullDisplay.append(self.ax.add_patch(polygon))
             if len(self.boat.hulls) > 1:
@@ -38,7 +44,7 @@ class boatDisplayShell():
                     cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
                     cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
                 else:
-                    self.connections.append(self.ax.plot([cx,self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())],[cy,self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())], color = 'gray'))
+                    self.connections.append(self.ax.plot([cx,self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())],[cy,self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())], color = 'gray')[0])
                     cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
                     cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
         #print(dir(self.hullDisplay[0]))
@@ -48,19 +54,23 @@ class boatDisplayShell():
             y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((self.boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
             x2 = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
             y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
-            self.sailDisplay.append(self.ax.plot([x1,x2],[y1,y2], color = 'yellow'))
+            self.sailDisplay.append(self.ax.plot([x1,x2],[y1,y2], color = 'yellow')[0])
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
     def update(self,f):
-        print("update",f,self.boat.position.xcomp(),self.boat.position.ycomp())
         self.boat.update(0.2)
-        for i, h in enumerate(self.hullDisplay):
-            #t = transforms.Affine2D().translate(self.boat.position.xcomp()+self.meter2degree(self.boat.hulls[i].position.xcomp()),self.boat.position.ycomp()+self.meter2degree(self.boat.hulls[i].position.ycomp()))
-            t = transforms.Affine2D().translate(self.boat.position.xcomp()-self.pos[0]+self.meter2degree(self.boat.hulls[i].position.xcomp()),self.boat.position.ycomp()-self.pos[1]+self.meter2degree(self.boat.hulls[i].position.ycomp()))
-            #r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp()+self.meter2degree(self.boat.hulls[i].position.xcomp()),self.boat.position.ycomp()+self.meter2degree(self.boat.hulls[i].position.ycomp()),(self.boat.angle+self.boat.hulls[i].angle).calc())
-            r = transforms.Affine2D().rotate_deg_around(self.pos[0]+self.meter2degree(self.boat.hulls[i].position.xcomp()),self.pos[1]+self.meter2degree(self.boat.hulls[i].position.ycomp()),(self.boat.angle+self.boat.hulls[i].angle).calc())
-            #r = transforms.Affine2D().rotate_deg_around(-122.09064463183425,37.43173389240419,(self.boat.angle+self.boat.hulls[i].angle).calc())
-            sum = r + t + self.ax.transData
-            h.set_transform(sum)
+        t = transforms.Affine2D().translate(self.boat.position.xcomp()-self.pos[0],self.boat.position.ycomp()-self.pos[1])
+        r = transforms.Affine2D().rotate_deg_around(self.pos[0],self.pos[1],self.boat.angle.calc())
+        sum = r + t + self.ax.transData
+        #hulls
+        for h in self.hullDisplay:
+             h.set_transform(sum)
+        #sails
+        for s in self.sailDisplay:
+            s.set_transform(sum)
+        #connections
+        for c in self.connections:
+            c.set_transform(sum)
+        
         self.pos = [self.boat.position.xcomp(),self.boat.position.ycomp()]
 
     def meter2degree(self, v):
@@ -95,8 +105,8 @@ if __name__ == "__main__":
     lakeShoreline = "Shoreline lake, Mountain View, Santa Clara County, California, United States"
 
     vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5,rotInertia = 1,size = 1.8)
-    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,0),0.6),rotInertia = 1,size = 1.5)
-    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,180),0.6),rotInertia = 1,size = 1.5)
+    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 1,size = 1.5)
+    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 1,size = 1.5)
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
     sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 10 m/s

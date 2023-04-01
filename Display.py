@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib.transforms as transforms
 import matplotlib.patches as patches
+from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from matplotlib.widgets import Slider, Button
 from Map import regionPolygon, loadGrib
 #Boat and variables
@@ -25,14 +26,14 @@ class boatDisplayShell():
         self.hullDisplay = []
         self.sailDisplay = []
         self.connections = []
+        self.forceDisplay = []
         self.pos = [self.boat.position.xcomp(),self.boat.position.ycomp()]
         cx = -1
         cy = -1
         for h in self.boat.hulls:
-            # hpos = copy.deepcopy(h.position)
-            # hpos.angle += self.boat.angle
             verts = [(self.meter2degree(i[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(i[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for i in h.polygon]
             polygon = patches.Polygon(verts, color="red") 
+            
             #NOTE YOU"LL NEED TO ADD A REAL CENTER OF MASS FUNCTIONALITY
             r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+h.angle).calc())
             #t = transforms.Affine2D().translate(self.meter2degree(h.position.xcomp()),self.meter2degree(h.position.ycomp()))
@@ -70,7 +71,6 @@ class boatDisplayShell():
         #connections
         for c in self.connections:
             c.set_transform(sum)
-        
         self.pos = [self.boat.position.xcomp(),self.boat.position.ycomp()]
 
     def meter2degree(self, v):
@@ -80,12 +80,20 @@ class boatDisplayShell():
 
 class display:
     def __init__(self,location,boat):
-        self.f, self.axes = plt.subplot_mosaic('AAA;AAA') #,per_subplot_kw={"B": {"projection": "polar"},},
-        # self.axes['B'].set_title('Sail Forces')
+        self.f, self.axes = plt.subplot_mosaic('AAAB;AAAC', figsize=(8, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
+        self.axes['B'].set_title('Display Settings')
+        self.axes['B'].axis('off')
+        self.displaySettings()
         self.map(location)
         self.boat = boatDisplayShell(boat,self.axes['A'])
         #credits
         plt.figtext(0, 0.01, 'Map: © OpenStreetMap contributors', fontsize = 10)
+    def displaySettings(self):
+        button_ax = plt.axes([0, 0, 1, 1])
+        forcesInp = InsetPosition(self.axes['B'], [0, 0.9, 0.9, 0.1]) #x,y,w,h
+        button_ax.set_axes_locator(forcesInp)
+        forces = Button(button_ax, 'Show Forces')
+
     def map(self,location):
         cords = regionPolygon(location)
         x = [i[0] for i in cords]

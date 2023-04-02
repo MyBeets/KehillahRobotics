@@ -140,4 +140,4 @@ class Vector():
         y.norm = -y.norm
         return self + y
     def __str__(self):
-        return "\033[93mVector\033[0m, norm: " +str(self.norm) + ", " + str(self.angle)
+        return "\033[93mVector\033[0m, norm: " +str(round(self.norm*10000)/10000) + ", " + str(Angle.norm(self.angle))

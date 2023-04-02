@@ -14,8 +14,14 @@ from Boat import Boat
 import os
 import math
 import copy
+import re
+
 
 data_dir = os.path.dirname(__file__) #abs dir
+
+def rm_ansi(line):
+    ansi_escape =re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
+    return ansi_escape.sub('', line)
 
 class boatDisplayShell():
     def __init__(self,Boat,ax):
@@ -30,16 +36,24 @@ class boatDisplayShell():
         self.pos = [self.boat.position.xcomp(),self.boat.position.ycomp()]
         cx = -1
         cy = -1
-        for h in self.boat.hulls:
-            verts = [(self.meter2degree(i[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(i[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for i in h.polygon]
-            polygon = patches.Polygon(verts, color="red") 
-            
+        for i, h in enumerate(self.boat.hulls):
+            verts = [(self.meter2degree(p[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
+            polygon = patches.Polygon(verts, color="gray") 
+
             #NOTE YOU"LL NEED TO ADD A REAL CENTER OF MASS FUNCTIONALITY
+            print("TODO: CENTER OF MASS")
             r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+h.angle).calc())
-            #t = transforms.Affine2D().translate(self.meter2degree(h.position.xcomp()),self.meter2degree(h.position.ycomp()))
-            #print(self.meter2degree(h.position.xcomp()),self.meter2degree(h.position.ycomp()))
+
             polygon.set_transform(r+ self.ax.transData)
             self.hullDisplay.append(self.ax.add_patch(polygon))
+
+            print("TODO: CENTER OF LATERAL RESISTANCE")
+            #lift
+            self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'red')[0])
+            #drag
+            self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'green')[0])
+
+
             if len(self.boat.hulls) > 1:
                 if cx == -1:
                     cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
@@ -57,14 +71,29 @@ class boatDisplayShell():
             y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
             self.sailDisplay.append(self.ax.plot([x1,x2],[y1,y2], color = 'yellow')[0])
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
-    def update(self,f):
+    def update(self):
         self.boat.update(0.2)
+        
         t = transforms.Affine2D().translate(self.boat.position.xcomp()-self.pos[0],self.boat.position.ycomp()-self.pos[1])
         r = transforms.Affine2D().rotate_deg_around(self.pos[0],self.pos[1],self.boat.angle.calc())
         sum = r + t + self.ax.transData
         #hulls
-        for h in self.hullDisplay:
-             h.set_transform(sum)
+        for i, h in enumerate(self.hullDisplay):
+            hull = self.boat.hulls[i]
+            cx = self.boat.position.xcomp()+self.meter2degree(hull.position.xcomp())
+            cy = self.boat.position.ycomp()+self.meter2degree(hull.position.ycomp())
+            #lift
+            self.forceDisplay[2*i].set_xdata([cx,cx+self.meter2degree(self.boat.hullLiftForce(i).xcomp())])
+            self.forceDisplay[2*i].set_ydata([cy,cy+self.meter2degree(self.boat.hullLiftForce(i).ycomp())])
+            #drag
+            self.forceDisplay[2*i+1].set_xdata([cx,cx+self.meter2degree(self.boat.hullDragForce(i).xcomp())])
+            self.forceDisplay[2*i+1].set_ydata([cy,cy+self.meter2degree(self.boat.hullDragForce(i).ycomp())])
+            #tranforms
+            h.set_transform(sum)
+            self.forceDisplay[2*i].set_transform(sum)
+            self.forceDisplay[2*i+1].set_transform(sum)
+
+
         #sails
         for s in self.sailDisplay:
             s.set_transform(sum)
@@ -81,18 +110,55 @@ class boatDisplayShell():
 class display:
     def __init__(self,location,boat):
         self.f, self.axes = plt.subplot_mosaic('AAAB;AAAC', figsize=(8, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
+        self.pause = False
+        self.map(location)
+        self.boat = boatDisplayShell(boat,self.axes['A'])
+
         self.axes['B'].set_title('Display Settings')
         self.axes['B'].axis('off')
         self.displaySettings()
-        self.map(location)
-        self.boat = boatDisplayShell(boat,self.axes['A'])
+
+        self.axes['C'].set_title('Debug Values')
+        self.axes['C'].axis('off')
+        self.text = []
+        self.text.append(self.axes['C'].text(0, 0.9, "Hull Apparent A:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.8, "Sail Apparent A:0", fontsize=9))
+        self.text.append(self.axes['C'].text(-0.17, 0.7, "Hull lift F:0", fontsize=6))
+        self.text.append(self.axes['C'].text(-0.17, 0.6, "Hull Drag F:0", fontsize=6))
+        self.text.append(self.axes['C'].text(0, 0.5, "Sail lift F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.4, "Sail Drag F:0", fontsize=9))
+        self.displayValues()
+
         #credits
         plt.figtext(0, 0.01, 'Map: © OpenStreetMap contributors', fontsize = 10)
+
+    def pauseT(self,t):
+        self.pause = not self.pause
+        if self.pause:
+            self.pauseButton.label.set_text('Play Animation')
+        else:
+            self.pauseButton.label.set_text('Pause Animation')
+
     def displaySettings(self):
-        button_ax = plt.axes([0, 0, 1, 1])
+        F_button_ax = plt.axes([0, 0, 1, 1])
         forcesInp = InsetPosition(self.axes['B'], [0, 0.9, 0.9, 0.1]) #x,y,w,h
-        button_ax.set_axes_locator(forcesInp)
-        forces = Button(button_ax, 'Show Forces')
+        F_button_ax.set_axes_locator(forcesInp)
+        self.forceButton = Button(F_button_ax, 'Show Forces')
+
+        P_button_ax = plt.axes([0, 0, 1, 1])
+        pauseInp = InsetPosition(self.axes['B'], [0, 0.78, 0.9, 0.1]) #x,y,w,h
+        P_button_ax.set_axes_locator(pauseInp)
+        self.pauseButton = Button(P_button_ax, 'Pause Animation')
+        self.pauseButton.on_clicked(self.pauseT)
+
+    def displayValues(self):
+        #Apparent Wind
+        self.text[0].set_text("Hull Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.hullAparentWind(1).angle))).replace("Angle: ",""))
+        self.text[1].set_text("Sail Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.sailAparentWind(0).angle))).replace("Angle: ",""))
+        #Hull Forces
+        self.text[2].set_text("Hull lift F:" + rm_ansi(str(self.boat.boat.hullLiftForce(0))))
+        self.text[3].set_text("Hull Drag F:" + rm_ansi(str(self.boat.boat.hullDragForce(1))))
+
 
     def map(self,location):
         cords = regionPolygon(location)
@@ -102,8 +168,14 @@ class display:
         self.axes['A'].fill(x,y,'b')
         self.axes['A'].axis([min(x), max(x),min(y), max(y)])
         self.axes['A'].grid()
+    
+    def updateCycle(self,f):
+        if not self.pause:
+            self.boat.update()
+            self.displayValues()
+
     def runAnimation(self):
-        anim = FuncAnimation(self.f, self.boat.update, interval=100, frames=100)
+        anim = FuncAnimation(self.f, self.updateCycle, interval=100, frames=100)
         plt.show()
         #anim.save('test.gif')
 
@@ -114,10 +186,10 @@ if __name__ == "__main__":
 
     vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5,rotInertia = 1,size = 1.8)
     ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 1,size = 1.5)
-    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 1,size = 1.5)
+    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 1.1,size = 1.5)
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
     sail.angle += Angle(1,10)
-    wind = Vector(Angle(1,270),3.6) # Going South wind, 10 m/s
+    wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
     boat = Boat([ama1,vaka,ama2],[sail],wind)
     boat.angle = Angle(1,0)
     sail.angle = Angle(1,30)

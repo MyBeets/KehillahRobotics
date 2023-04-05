@@ -27,16 +27,15 @@ class boatDisplayShell():
     def __init__(self,Boat,ax):
         self.ax = ax
         self.boat = Boat
-        self.createBoat()
     def createBoat(self):
         self.hullDisplay = []
         self.sailDisplay = []
         self.connections = []
         self.forceDisplay = []
-        self.pos = [self.boat.position.xcomp(),self.boat.position.ycomp()]
         cx = -1
         cy = -1
         for i, h in enumerate(self.boat.hulls):
+            #verts = [(self.meter2degree(p[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
             verts = [(self.meter2degree(p[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
             polygon = patches.Polygon(verts, color="gray") 
 
@@ -54,14 +53,14 @@ class boatDisplayShell():
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'green')[0])
 
 
-            if len(self.boat.hulls) > 1:
-                if cx == -1:
-                    cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
-                    cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
-                else:
-                    self.connections.append(self.ax.plot([cx,self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())],[cy,self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())], color = 'gray')[0])
-                    cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
-                    cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
+            # if len(self.boat.hulls) > 1:
+            #     if cx == -1:
+            #         cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
+            #         cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
+            #     else:
+            #         self.connections.append(self.ax.plot([cx,self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())],[cy,self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())], color = 'gray')[0])
+            #         cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
+            #         cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
         #print(dir(self.hullDisplay[0]))
         for s in self.boat.sails:
             #x1, y1 are the points on the mast
@@ -73,10 +72,9 @@ class boatDisplayShell():
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
     def update(self):
         self.boat.update(0.2)
-        
-        t = transforms.Affine2D().translate(self.boat.position.xcomp()-self.pos[0],self.boat.position.ycomp()-self.pos[1])
-        r = transforms.Affine2D().rotate_deg_around(self.pos[0],self.pos[1],self.boat.angle.calc())
-        sum = r + t + self.ax.transData
+        # t = transforms.Affine2D().translate(self.boat.position.xcomp()-pos[0],self.boat.position.ycomp()-pos[1])
+        r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),self.boat.angle.calc())
+        sum = r + self.ax.transData
         #hulls
         for i, h in enumerate(self.hullDisplay):
             hull = self.boat.hulls[i]
@@ -89,18 +87,27 @@ class boatDisplayShell():
             self.forceDisplay[2*i+1].set_xdata([cx,cx+self.meter2degree(self.boat.hullDragForce(i).xcomp())])
             self.forceDisplay[2*i+1].set_ydata([cy,cy+self.meter2degree(self.boat.hullDragForce(i).ycomp())])
             #tranforms
-            h.set_transform(sum)
+            verts = [(self.meter2degree(p[0]*self.boat.hulls[i].size+ self.boat.hulls[i].position.xcomp())+self.boat.position.xcomp(),self.meter2degree(p[1]*self.boat.hulls[i].size+self.boat.hulls[i].position.ycomp())+self.boat.position.ycomp()) for p in self.boat.hulls[i].polygon]
+            self.hullDisplay[i].set_xy(verts)
+
+            self.hullDisplay[i].set_transform(sum)
+
             self.forceDisplay[2*i].set_transform(sum)
             self.forceDisplay[2*i+1].set_transform(sum)
 
-
         #sails
-        for s in self.sailDisplay:
+        for i, s in enumerate(self.sailDisplay):
+            x1 = self.boat.position.xcomp()+self.meter2degree(math.cos((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm)
+            y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm)
+            x2 = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size)
+            y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size)
+            s.set_xdata([x1,x2])
+            s.set_ydata([y1,y2])
             s.set_transform(sum)
         #connections
-        for c in self.connections:
-            c.set_transform(sum)
-        self.pos = [self.boat.position.xcomp(),self.boat.position.ycomp()]
+        # for c in self.connections:
+
+        #     c.set_transform(sum)
 
     def meter2degree(self, v):
         return v*90/1000000
@@ -111,8 +118,10 @@ class display:
     def __init__(self,location,boat):
         self.f, self.axes = plt.subplot_mosaic('AAAB;AAAC', figsize=(8, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
         self.pause = False
-        self.map(location)
+
         self.boat = boatDisplayShell(boat,self.axes['A'])
+        self.map(location) # creates map and sets units
+        self.boat.createBoat()
 
         self.axes['B'].set_title('Display Settings')
         self.axes['B'].axis('off')
@@ -121,12 +130,14 @@ class display:
         self.axes['C'].set_title('Debug Values')
         self.axes['C'].axis('off')
         self.text = []
-        self.text.append(self.axes['C'].text(0, 0.9, "Hull Apparent A:0", fontsize=9))
-        self.text.append(self.axes['C'].text(0, 0.8, "Sail Apparent A:0", fontsize=9))
-        self.text.append(self.axes['C'].text(-0.17, 0.7, "Hull lift F:0", fontsize=6))
-        self.text.append(self.axes['C'].text(-0.17, 0.6, "Hull Drag F:0", fontsize=6))
-        self.text.append(self.axes['C'].text(0, 0.5, "Sail lift F:0", fontsize=9))
-        self.text.append(self.axes['C'].text(0, 0.4, "Sail Drag F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(-0.17, 0.9, "Boat LVelocity V:0", fontsize=5.5))
+        self.text.append(self.axes['C'].text(0, 0.8, "Boat AVelocity V:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.7, "Hull Apparent A:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.6, "Sail Apparent A:0", fontsize=9))
+        self.text.append(self.axes['C'].text(-0.17, 0.5, "Hull lift F:0", fontsize=6))
+        self.text.append(self.axes['C'].text(-0.17, 0.4, "Hull Drag F:0", fontsize=6))
+        self.text.append(self.axes['C'].text(0, 0.3, "Sail lift F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.2, "Sail Drag F:0", fontsize=9))
         self.displayValues()
 
         #credits
@@ -152,18 +163,36 @@ class display:
         self.pauseButton.on_clicked(self.pauseT)
 
     def displayValues(self):
+        #Velocity
+        self.text[0].set_text("Boat LVelocity V:" + rm_ansi(str(self.boat.boat.linearVelocity)))
+        self.text[1].set_text("Boat AVelocity V:" + rm_ansi(str(round(self.boat.boat.rotationalVelocity*10000)/10000)))
         #Apparent Wind
-        self.text[0].set_text("Hull Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.hullAparentWind(1).angle))).replace("Angle: ",""))
-        self.text[1].set_text("Sail Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.sailAparentWind(0).angle))).replace("Angle: ",""))
+        self.text[2].set_text("Hull Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.hullAparentWind(1).angle))).replace("Angle: ",""))
+        self.text[3].set_text("Sail Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.sailAparentWind(0).angle))).replace("Angle: ",""))
         #Hull Forces
-        self.text[2].set_text("Hull lift F:" + rm_ansi(str(self.boat.boat.hullLiftForce(0))))
-        self.text[3].set_text("Hull Drag F:" + rm_ansi(str(self.boat.boat.hullDragForce(1))))
+        self.text[4].set_text("Hull lift F:" + rm_ansi(str(self.boat.boat.hullLiftForce(0))))
+        self.text[5].set_text("Hull Drag F:" + rm_ansi(str(self.boat.boat.hullDragForce(1))))
 
 
     def map(self,location):
         cords = regionPolygon(location)
         x = [i[0] for i in cords]
         y = [i[1] for i in cords]
+
+        mx = min(x)
+        my = min(y)
+
+        dx = max(x)-mx
+        dy = max(y)-my
+        #the cordinates are typically in degrees
+        x = [(i-mx) for i in x] # normalisation
+        y = [(i-my) for i in y]
+
+        bx = (self.boat.boat.position.xcomp()-mx)
+        by = (self.boat.boat.position.ycomp()-my)
+        print(bx,by)
+        self.boat.boat.setPos(Vector(Angle(1,round(math.atan2(by,bx)*180/math.pi*10000)/10000),math.sqrt(bx**2+by**2)))
+
         self.axes['A'].set_title(location.split(" ")[0]+ " map")
         self.axes['A'].fill(x,y,'b')
         self.axes['A'].axis([min(x), max(x),min(y), max(y)])

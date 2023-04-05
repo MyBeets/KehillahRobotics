@@ -1,5 +1,6 @@
 import math
 from Variables import *
+import copy
 
 class Boat:
     def __init__(self, hulls, sails, wind,mass =10):
@@ -37,11 +38,13 @@ class Boat:
         ay = (self.forces["sails"]+self.forces["hulls"]).ycomp()/self.mass
         a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*10000)/10000),math.sqrt(ax**2+ay**2))
         #d = v*dt +1/2*a*dt^2
-        self.position += self.meter2degree(self.linearVelocity*dt+(a*(dt**2))*0.5)
+        disp = self.linearVelocity*dt+(a*(dt**2))*0.5
+        self.position += self.meter2degree(disp)
 
     def meter2degree(self, vect):
-        vect.norm *= 90/1000000
-        return vect
+        vect2 = copy.deepcopy(vect)
+        vect2.norm *= 90/1000000
+        return vect2
         return v/111111
     
     def updateRotation(self, dt):

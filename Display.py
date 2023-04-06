@@ -82,9 +82,11 @@ class boatDisplayShell():
         sum = r + self.ax.transData
         #hulls
         for i, h in enumerate(self.hullDisplay):
-            hull = self.boat.hulls[i]
+            hull = copy.deepcopy(self.boat.hulls[i])
+            hull.position.angle += Angle.norm(self.boat.angle)
             cx = self.boat.position.xcomp()+self.meter2degree(hull.position.xcomp())
             cy = self.boat.position.ycomp()+self.meter2degree(hull.position.ycomp())
+            
             #lift
             self.forceDisplay[2*i].set_xdata([cx,cx+self.meter2degree(self.boat.hullLiftForce(i).xcomp())])
             self.forceDisplay[2*i].set_ydata([cy,cy+self.meter2degree(self.boat.hullLiftForce(i).ycomp())])
@@ -97,8 +99,8 @@ class boatDisplayShell():
 
             self.hullDisplay[i].set_transform(sum)
 
-            self.forceDisplay[2*i].set_transform(sum)
-            self.forceDisplay[2*i+1].set_transform(sum)
+            # self.forceDisplay[2*i].set_transform(sum)
+            # self.forceDisplay[2*i+1].set_transform(sum)
 
         #sails
         for i, s in enumerate(self.sailDisplay):
@@ -121,7 +123,7 @@ class boatDisplayShell():
 
             s.set_xdata([x1,x2])
             s.set_ydata([y1,y2])
-            s.set_transform(sum)
+            #s.set_transform(sum)
             
         #connections
         # for c in self.connections:
@@ -223,7 +225,6 @@ class display:
 
         bx = (self.boat.boat.position.xcomp()-mx)
         by = (self.boat.boat.position.ycomp()-my)
-        print(bx,by)
         self.boat.boat.setPos(Vector(Angle(1,round(math.atan2(by,bx)*180/math.pi*10000)/10000),math.sqrt(bx**2+by**2)))
 
         self.axes['A'].set_title(location.split(" ")[0]+ " map")
@@ -237,8 +238,9 @@ class display:
             if self.track:
                 dx = self.axes['A'].get_xlim()[1]-self.axes['A'].get_xlim()[0]
                 dy = self.axes['A'].get_ylim()[1]-self.axes['A'].get_ylim()[0]
-                self.axes['A'].set_xlim(self.boat.boat.position.xcomp()-dx/2,self.boat.boat.position.xcomp()+dx/2)
-                self.axes['A'].set_ylim(self.boat.boat.position.ycomp()-dy/2,self.boat.boat.position.ycomp()+dy/2)
+                dm = max(dx,dy)
+                self.axes['A'].set_xlim(self.boat.boat.position.xcomp()-dm/2,self.boat.boat.position.xcomp()+dm/2)
+                self.axes['A'].set_ylim(self.boat.boat.position.ycomp()-dm/2,self.boat.boat.position.ycomp()+dm/2)
             self.displayValues()
 
     def runAnimation(self):

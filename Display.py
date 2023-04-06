@@ -47,9 +47,9 @@ class boatDisplayShell():
             self.hullDisplay.append(self.ax.add_patch(polygon))
 
             print("TODO: CENTER OF LATERAL RESISTANCE")
-            #lift
+            #hull lift
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'red')[0])
-            #drag
+            #hull drag
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'green')[0])
 
 
@@ -69,6 +69,11 @@ class boatDisplayShell():
             x2 = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
             y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
             self.sailDisplay.append(self.ax.plot([x1,x2],[y1,y2], color = 'yellow')[0])
+            print("TODO: CENTER OF EFFORT")
+            #sail lift
+            self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'gold')[0])
+            #sail drag
+            self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'lime')[0])
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
     def update(self):
         self.boat.update(0.2)
@@ -101,9 +106,23 @@ class boatDisplayShell():
             y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm)
             x2 = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size)
             y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size)
+            
+            CEx = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2)
+            CEy = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2)
+            #lift
+            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+self.meter2degree(self.boat.sailLiftForce(i).xcomp())])
+            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+self.meter2degree(self.boat.sailLiftForce(i).ycomp())])
+            #drag
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+self.meter2degree(self.boat.sailDragForce(i).xcomp())])
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+self.meter2degree(self.boat.sailDragForce(i).ycomp())])
+            
+            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_transform(sum)
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_transform(sum)
+
             s.set_xdata([x1,x2])
             s.set_ydata([y1,y2])
             s.set_transform(sum)
+            
         #connections
         # for c in self.connections:
 
@@ -118,6 +137,7 @@ class display:
     def __init__(self,location,boat):
         self.f, self.axes = plt.subplot_mosaic('AAAB;AAAC', figsize=(8, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
         self.pause = False
+        self.track = False
 
         self.boat = boatDisplayShell(boat,self.axes['A'])
         self.map(location) # creates map and sets units
@@ -150,17 +170,30 @@ class display:
         else:
             self.pauseButton.label.set_text('Pause Animation')
 
+    def trackZ(self,t):
+        self.track = not self.track
+        if self.track:
+            self.zoomButton.label.set_text('Stop Tracking')
+        else:
+            self.zoomButton.label.set_text('Track Boat')
+
     def displaySettings(self):
         F_button_ax = plt.axes([0, 0, 1, 1])
         forcesInp = InsetPosition(self.axes['B'], [0, 0.9, 0.9, 0.1]) #x,y,w,h
         F_button_ax.set_axes_locator(forcesInp)
-        self.forceButton = Button(F_button_ax, 'Show Forces')
+        self.forceButton = Button(F_button_ax, 'Hide Forces')
 
         P_button_ax = plt.axes([0, 0, 1, 1])
         pauseInp = InsetPosition(self.axes['B'], [0, 0.78, 0.9, 0.1]) #x,y,w,h
         P_button_ax.set_axes_locator(pauseInp)
         self.pauseButton = Button(P_button_ax, 'Pause Animation')
         self.pauseButton.on_clicked(self.pauseT)
+
+        Z_button_ax = plt.axes([0, 0, 1, 1])
+        zoomInp = InsetPosition(self.axes['B'], [0, 0.66, 0.9, 0.1]) #x,y,w,h
+        Z_button_ax.set_axes_locator(zoomInp)
+        self.zoomButton = Button(Z_button_ax, 'Track Boat')
+        self.zoomButton.on_clicked(self.trackZ)
 
     def displayValues(self):
         #Velocity
@@ -201,6 +234,11 @@ class display:
     def updateCycle(self,f):
         if not self.pause:
             self.boat.update()
+            if self.track:
+                dx = self.axes['A'].get_xlim()[1]-self.axes['A'].get_xlim()[0]
+                dy = self.axes['A'].get_ylim()[1]-self.axes['A'].get_ylim()[0]
+                self.axes['A'].set_xlim(self.boat.boat.position.xcomp()-dx/2,self.boat.boat.position.xcomp()+dx/2)
+                self.axes['A'].set_ylim(self.boat.boat.position.ycomp()-dy/2,self.boat.boat.position.ycomp()+dy/2)
             self.displayValues()
 
     def runAnimation(self):

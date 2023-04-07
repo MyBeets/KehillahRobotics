@@ -28,10 +28,10 @@ class Boat:
         self.updateHullForcesandMoments()
         #update velocities
         self.updateLinearVelocity(dt)
-        self.updateRotationalVelocity(dt)
+        #self.updateRotationalVelocity(dt)
         #update position and rotation
         self.updatePosition(dt)
-        self.updateRotation(dt)
+        #self.updateRotation(dt)
 
     def updatePosition(self, dt):
         ax = (self.forces["sails"]+self.forces["hulls"]).xcomp()/self.mass
@@ -46,6 +46,11 @@ class Boat:
         vect2.norm *= 90/1000000
         return vect2
         return v/111111
+
+    def degree2meter(self, vect):
+        vect2 = copy.deepcopy(vect)
+        vect2.norm *= 1000000/90
+        return vect2
     
     def updateRotation(self, dt):
         sMoments = self.moments["sails"] + self.moments["hulls"]
@@ -121,11 +126,13 @@ class Boat:
 
     def hullAparentWind(self,idx=0):
         # returns aparent water velocity on a hull 
-        #TODO
-        #First get current angular velocity (tangential to roation)
-        V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
-        #Then combine with linear velocity
-        V += self.linearVelocity
+
+        V = self.degree2meter(self.linearVelocity)
+
+        # #First get current angular velocity (tangential to roation)
+        # V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
+        # #Then combine with linear velocity
+        # V += self.degree2meter(self.linearVelocity)
         #Finally make aparent
         V.angle -= self.hulls[idx].angle
         V.angle += Angle(1,180) #flip it

@@ -125,6 +125,19 @@ class Vector():
         return math.cos(self.angle.calc()*math.pi/180)*self.speed()
     def ycomp(self): # y component of vector in calc format
         return math.sin(self.angle.calc()*math.pi/180)*self.speed()
+
+    def meter2degree(self,lat):
+        R=111111
+        dLat = self.ycomp()/R
+        dLon = self.xcomp()/(R*math.cos(lat*math.pi/180))
+        return Vector(Angle(1,round(math.atan2(dLat,dLon)*180/math.pi*10000)/10000),math.sqrt(dLon**2+dLat**2))
+
+    def degree2meter(self,lat):#obviously this has limitations
+        R=6378137 #earth r
+        dLat = self.ycomp()*R
+        dLon = self.xcomp()*(R*math.cos(lat*math.pi/180))
+        return Vector(Angle(1,round(math.atan2(dLat,dLon)*180/math.pi*10000)/10000),math.sqrt(dLon**2+dLat**2))
+    
     def __add__(self,x):#Returns vector addition in calc format
         #NOTE: I don't like this current method, the use of x components and trig is bad for precision, this should be replaced
         dx = self.xcomp() + x.xcomp() + 0.0000000001

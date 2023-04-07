@@ -76,7 +76,7 @@ class boatDisplayShell():
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'lime')[0])
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
     def update(self):
-        self.boat.update(0.2)
+        self.boat.update(1)
         # t = transforms.Affine2D().translate(self.boat.position.xcomp()-pos[0],self.boat.position.ycomp()-pos[1])
         r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),self.boat.angle.calc())
         sum = r + self.ax.transData
@@ -115,8 +115,8 @@ class boatDisplayShell():
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+self.meter2degree(self.boat.sailLiftForce(i).xcomp())])
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+self.meter2degree(self.boat.sailLiftForce(i).ycomp())])
             #drag
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+self.meter2degree(self.boat.sailDragForce(i).xcomp())])
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+self.meter2degree(self.boat.sailDragForce(i).ycomp())])
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+self.meter2degree(self.boat.sailDragForce(i).xcomp()+self.boat.sailLiftForce(i).xcomp())])
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+self.meter2degree(self.boat.sailDragForce(i).ycomp()+self.boat.sailLiftForce(i).ycomp())])
             
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_transform(sum)
             self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_transform(sum)
@@ -205,8 +205,11 @@ class display:
         self.text[2].set_text("Hull Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.hullAparentWind(1).angle))).replace("Angle: ",""))
         self.text[3].set_text("Sail Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.sailAparentWind(0).angle))).replace("Angle: ",""))
         #Hull Forces
-        self.text[4].set_text("Hull lift F:" + rm_ansi(str(self.boat.boat.hullLiftForce(0))))
+        self.text[4].set_text("Hull lift F:" + rm_ansi(str(self.boat.boat.hullLiftForce(1))))
         self.text[5].set_text("Hull Drag F:" + rm_ansi(str(self.boat.boat.hullDragForce(1))))
+        #Sail Forces
+        self.text[6].set_text("Sail lift F:" + rm_ansi(str(self.boat.boat.sailLiftForce(0))))
+        self.text[7].set_text("Sail Drag F:" + rm_ansi(str(self.boat.boat.sailDragForce(0))))
 
 
     def map(self,location):
@@ -238,7 +241,7 @@ class display:
             if self.track:
                 dx = self.axes['A'].get_xlim()[1]-self.axes['A'].get_xlim()[0]
                 dy = self.axes['A'].get_ylim()[1]-self.axes['A'].get_ylim()[0]
-                dm = max(dx,dy)
+                dm = max(dx,dy)#anti-distortion
                 self.axes['A'].set_xlim(self.boat.boat.position.xcomp()-dm/2,self.boat.boat.position.xcomp()+dm/2)
                 self.axes['A'].set_ylim(self.boat.boat.position.ycomp()-dm/2,self.boat.boat.position.ycomp()+dm/2)
             self.displayValues()

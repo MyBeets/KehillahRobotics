@@ -24,9 +24,10 @@ def rm_ansi(line):
     return ansi_escape.sub('', line)
 
 class boatDisplayShell():
-    def __init__(self,Boat,ax):
+    def __init__(self,Boat,ax,refLat):
         self.ax = ax
         self.boat = Boat
+        self.refLat =refLat
     def createBoat(self):
         self.hullDisplay = []
         self.sailDisplay = []
@@ -36,7 +37,7 @@ class boatDisplayShell():
         cy = -1
         for i, h in enumerate(self.boat.hulls):
             #verts = [(self.meter2degree(p[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
-            verts = [(self.meter2degree(p[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
+            verts = [(meter2degreeX(p[0]*h.size+ h.position.xcomp(),self.refLat)+self.boat.position.xcomp(),meter2degreeY(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
             polygon = patches.Polygon(verts, color="gray") 
 
             #NOTE YOU"LL NEED TO ADD A REAL CENTER OF MASS FUNCTIONALITY
@@ -64,10 +65,10 @@ class boatDisplayShell():
         #print(dir(self.hullDisplay[0]))
         for s in self.boat.sails:
             #x1, y1 are the points on the mast
-            x1 = self.boat.position.xcomp()+self.meter2degree(math.cos((self.boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
-            y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((self.boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
-            x2 = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
-            y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
+            x1 = self.boat.position.xcomp()+meter2degreeX(math.cos((self.boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm,self.refLat)
+            y1 = self.boat.position.ycomp()+meter2degreeY(math.sin((self.boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm)
+            x2 = x1+meter2degreeX(math.cos((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size,self.refLat)
+            y2 = y1+meter2degreeY(math.sin((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
             self.sailDisplay.append(self.ax.plot([x1,x2],[y1,y2], color = 'yellow')[0])
             print("TODO: CENTER OF EFFORT")
             #sail lift
@@ -76,7 +77,7 @@ class boatDisplayShell():
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'lime')[0])
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
     def update(self):
-        self.boat.update(1)
+        self.boat.update(0.2)
         # t = transforms.Affine2D().translate(self.boat.position.xcomp()-pos[0],self.boat.position.ycomp()-pos[1])
         r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),self.boat.angle.calc())
         sum = r + self.ax.transData
@@ -84,17 +85,19 @@ class boatDisplayShell():
         for i, h in enumerate(self.hullDisplay):
             hull = copy.deepcopy(self.boat.hulls[i])
             hull.position.angle += Angle.norm(self.boat.angle)
-            cx = self.boat.position.xcomp()+self.meter2degree(hull.position.xcomp())
-            cy = self.boat.position.ycomp()+self.meter2degree(hull.position.ycomp())
+
+            pos = self.boat.position + hull.position.meter2degree(self.boat.position.ycomp())
+            cx = pos.xcomp()
+            cy = pos.ycomp()
             
             #lift
-            self.forceDisplay[2*i].set_xdata([cx,cx+self.meter2degree(self.boat.hullLiftForce(i).xcomp())])
-            self.forceDisplay[2*i].set_ydata([cy,cy+self.meter2degree(self.boat.hullLiftForce(i).ycomp())])
+            self.forceDisplay[2*i].set_xdata([cx,cx+meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
+            self.forceDisplay[2*i].set_ydata([cy,cy+meter2degreeY(self.boat.hullLiftForce(i).ycomp())])
             #drag
-            self.forceDisplay[2*i+1].set_xdata([cx,cx+self.meter2degree(self.boat.hullDragForce(i).xcomp())])
-            self.forceDisplay[2*i+1].set_ydata([cy,cy+self.meter2degree(self.boat.hullDragForce(i).ycomp())])
+            self.forceDisplay[2*i+1].set_xdata([cx,cx+meter2degreeX(self.boat.hullDragForce(i).xcomp(),self.refLat)])
+            self.forceDisplay[2*i+1].set_ydata([cy,cy+meter2degreeY(self.boat.hullDragForce(i).ycomp())])
             #tranforms
-            verts = [(self.meter2degree(p[0]*self.boat.hulls[i].size+ self.boat.hulls[i].position.xcomp())+self.boat.position.xcomp(),self.meter2degree(p[1]*self.boat.hulls[i].size+self.boat.hulls[i].position.ycomp())+self.boat.position.ycomp()) for p in self.boat.hulls[i].polygon]
+            verts = [(meter2degreeX(p[0]*self.boat.hulls[i].size+ self.boat.hulls[i].position.xcomp(),self.refLat)+self.boat.position.xcomp(),meter2degreeY(p[1]*self.boat.hulls[i].size+self.boat.hulls[i].position.ycomp())+self.boat.position.ycomp()) for p in self.boat.hulls[i].polygon]
             self.hullDisplay[i].set_xy(verts)
 
             self.hullDisplay[i].set_transform(sum)
@@ -104,19 +107,19 @@ class boatDisplayShell():
 
         #sails
         for i, s in enumerate(self.sailDisplay):
-            x1 = self.boat.position.xcomp()+self.meter2degree(math.cos((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm)
-            y1 = self.boat.position.ycomp()+self.meter2degree(math.sin((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm)
-            x2 = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size)
-            y2 = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size)
+            x1 = self.boat.position.xcomp()+meter2degreeX(math.cos((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm,self.refLat)
+            y1 = self.boat.position.ycomp()+meter2degreeY(math.sin((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm)
+            x2 = x1+meter2degreeX(math.cos((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size,self.refLat)
+            y2 = y1+meter2degreeY(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size)
             
-            CEx = x1+self.meter2degree(math.cos((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2)
-            CEy = y1+self.meter2degree(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2)
+            CEx = x1+meter2degreeX(math.cos((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2,self.refLat)
+            CEy = y1+meter2degreeY(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2)
             #lift
-            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+self.meter2degree(self.boat.sailLiftForce(i).xcomp())])
-            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+self.meter2degree(self.boat.sailLiftForce(i).ycomp())])
+            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailLiftForce(i).xcomp(),self.refLat)])
+            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailLiftForce(i).ycomp())])
             #drag
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+self.meter2degree(self.boat.sailDragForce(i).xcomp()+self.boat.sailLiftForce(i).xcomp())])
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+self.meter2degree(self.boat.sailDragForce(i).ycomp()+self.boat.sailLiftForce(i).ycomp())])
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailDragForce(i).xcomp()+self.boat.sailLiftForce(i).xcomp(),self.refLat)])
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailDragForce(i).ycomp()+self.boat.sailLiftForce(i).ycomp())])
             
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_transform(sum)
             self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_transform(sum)
@@ -130,9 +133,11 @@ class boatDisplayShell():
 
         #     c.set_transform(sum)
 
-    def meter2degree(self, v):
-        return v*90/1000000
-        return v/111111
+    # def meter2degree(self, v):
+    #     return v/(111111* abs(math.cos(self.boat.position.ycomp() * (math.pi / 180))))
+    #     return v/111120
+        #return v*90/1000000
+        #return v/111111
 
 
 class display:
@@ -141,7 +146,7 @@ class display:
         self.pause = False
         self.track = False
 
-        self.boat = boatDisplayShell(boat,self.axes['A'])
+        self.boat = boatDisplayShell(boat,self.axes['A'],boat.position.ycomp())
         self.map(location) # creates map and sets units
         self.boat.createBoat()
 
@@ -154,12 +159,12 @@ class display:
         self.text = []
         self.text.append(self.axes['C'].text(-0.17, 0.9, "Boat LVelocity V:0", fontsize=5.5))
         self.text.append(self.axes['C'].text(0, 0.8, "Boat AVelocity V:0", fontsize=9))
-        self.text.append(self.axes['C'].text(0, 0.7, "Hull Apparent A:0", fontsize=9))
-        self.text.append(self.axes['C'].text(0, 0.6, "Sail Apparent A:0", fontsize=9))
+        self.text.append(self.axes['C'].text(-0.17, 0.7, "Hull Apparent A:0", fontsize=6))
+        self.text.append(self.axes['C'].text(-0.17, 0.6, "Sail Apparent A:0", fontsize=6))
         self.text.append(self.axes['C'].text(-0.17, 0.5, "Hull lift F:0", fontsize=6))
         self.text.append(self.axes['C'].text(-0.17, 0.4, "Hull Drag F:0", fontsize=6))
-        self.text.append(self.axes['C'].text(0, 0.3, "Sail lift F:0", fontsize=9))
-        self.text.append(self.axes['C'].text(0, 0.2, "Sail Drag F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(-0.17, 0.3, "Sail lift F:0", fontsize=6))
+        self.text.append(self.axes['C'].text(-0.17, 0.2, "Sail Drag F:0", fontsize=6))
         self.displayValues()
 
         #credits
@@ -202,8 +207,8 @@ class display:
         self.text[0].set_text("Boat LVelocity V:" + rm_ansi(str(self.boat.boat.linearVelocity)))
         self.text[1].set_text("Boat AVelocity V:" + rm_ansi(str(round(self.boat.boat.rotationalVelocity*10000)/10000)))
         #Apparent Wind
-        self.text[2].set_text("Hull Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.hullAparentWind(1).angle))).replace("Angle: ",""))
-        self.text[3].set_text("Sail Apparent V:" + rm_ansi(str(Angle.norm(self.boat.boat.sailAparentWind(0).angle))).replace("Angle: ",""))
+        self.text[2].set_text("Hull Apparent V:" + rm_ansi(str(self.boat.boat.hullAparentWind(1))).replace("Vector",""))
+        self.text[3].set_text("Sail Apparent V:" + rm_ansi(str(self.boat.boat.sailAparentWind(0))).replace("Vector",""))
         #Hull Forces
         self.text[4].set_text("Hull lift F:" + rm_ansi(str(self.boat.boat.hullLiftForce(1))))
         self.text[5].set_text("Hull Drag F:" + rm_ansi(str(self.boat.boat.hullDragForce(1))))
@@ -262,11 +267,11 @@ if __name__ == "__main__":
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
     sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
-    boat = Boat([ama1,vaka,ama2],[sail],wind)
-    boat.angle = Angle(1,0)
-    sail.angle = Angle(1,30)
     xpos = -122.09064
     ypos = 37.431749
+    boat = Boat([ama1,vaka,ama2],[sail],wind,refLat=ypos)
+    boat.angle = Angle(1,0)
+    sail.angle = Angle(1,30)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
     render = display(lakeShoreline,boat)
     render.runAnimation()

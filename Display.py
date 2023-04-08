@@ -88,9 +88,11 @@ class boatDisplayShell():
             hull = copy.deepcopy(self.boat.hulls[i])
             hull.position.angle += Angle.norm(self.boat.angle)
 
-            pos = self.boat.position + hull.position.meter2degree(self.boat.position.ycomp())
-            cx = pos.xcomp()
-            cy = pos.ycomp()
+            #pos = self.boat.position + hull.position.meter2degree(self.refLat)
+            cx = self.boat.position.xcomp() + meter2degreeX(hull.position.xcomp(),self.refLat)
+            cy = self.boat.position.ycomp() + meter2degreeY(hull.position.ycomp())
+            #cx = pos.xcomp()
+            #cy = pos.ycomp()
             
             #lift
             self.forceDisplay[2*i].set_xdata([cx,cx+meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
@@ -130,11 +132,11 @@ class boatDisplayShell():
             #s.set_transform(sum)
         #boat net forces
         #self.boat.forces["sails"]+
-        f = self.boat.hullDragForce(1)+self.boat.hullLiftForce(1)+self.boat.sailDragForce(0)+self.boat.sailLiftForce(0)
+        #f = self.boat.hullDragForce(1)+self.boat.hullLiftForce(1)+self.boat.sailDragForce(0)+self.boat.sailLiftForce(0)
+        f = self.boat.forces["sails"]+self.boat.forces["hulls"]
         self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX(f.xcomp(),self.refLat)])
         self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY(f.ycomp())])
-        # self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX((self.boat.forces["hulls"]).xcomp(),self.refLat)])
-        # self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY((self.boat.forces["hulls"]).ycomp())])
+
         # #connections
         # for c in self.connections:
 

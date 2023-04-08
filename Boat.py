@@ -3,7 +3,7 @@ from Variables import *
 import copy
 
 class Boat:
-    def __init__(self, hulls, sails, wind,mass =10):
+    def __init__(self, hulls, sails, wind,mass =10,refLat=37):
         self.hulls = hulls #array of hulls
         self.sails = sails
         self.wind = wind
@@ -16,7 +16,7 @@ class Boat:
         #current boat velocities
         self.linearVelocity = Vector(Angle(1,90),0) # m/s
         self.rotationalVelocity = 0 # radians/s, positive is ccw, negative is cw
-
+        self.refLat = refLat
         #current boat position
         self.position = Vector(Angle(1,90),0)
 
@@ -25,9 +25,10 @@ class Boat:
     def update(self,dt=1): #t is in seconds
         #update forces and moments
         self.updateSailForcesandMoments()
-        self.updateHullForcesandMoments()
+        #self.updateHullForcesandMoments()
         #update velocities
         self.updateLinearVelocity(dt)
+        # print(self.degree2meter(self.linearVelocity))
         #self.updateRotationalVelocity(dt)
         #update position and rotation
         self.updatePosition(dt)
@@ -39,17 +40,20 @@ class Boat:
         a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*10000)/10000),math.sqrt(ax**2+ay**2))
         #d = v*dt +1/2*a*dt^2
         disp = self.linearVelocity*dt+(a*(dt**2))*0.5
-        self.position += self.meter2degree(disp)
+        #print(self.degree2meter(disp))
+        self.position += disp.meter2degree(self.refLat)
 
-    def meter2degree(self, vect):
-        vect2 = copy.deepcopy(vect)
-        vect2.norm *= 90/1000000
-        return vect2
-        return v/111111
+    # def meter2degree(self, vect):
+    #     vect2 = copy.deepcopy(vect)
+    #     #vect2.norm *= 90/1000000
+    #     vect2.norm *=3/(111.32 * 1000 * math.cos(self.position.ycomp() * (math.pi / 180)))
+    #     return vect2
+    #     return v/111111
 
     def degree2meter(self, vect):
         vect2 = copy.deepcopy(vect)
-        vect2.norm *= 1000000/90
+        #vect2.norm *= 1000000/90
+        vect2.norm *=(111.32 * 1000 * math.cos(self.position.ycomp() * (math.pi / 180)))/3
         return vect2
     
     def updateRotation(self, dt):
@@ -127,7 +131,7 @@ class Boat:
     def hullAparentWind(self,idx=0):
         # returns aparent water velocity on a hull 
 
-        V = self.degree2meter(self.linearVelocity)
+        V = self.linearVelocity.degree2meter(self.refLat)
 
         # #First get current angular velocity (tangential to roation)
         # V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)

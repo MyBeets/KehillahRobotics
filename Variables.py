@@ -115,6 +115,14 @@ class Angle(Variable):
     def __mul__(self,x):
         return Angle(self.type, self.norm(self).value*self.norm(x).nType(self.type))
 
+def meter2degreeY(displacement):
+    R=111111
+    return displacement/R
+
+def meter2degreeX(displacement, lattitude):
+    R=111111
+    return displacement/(R*math.cos(lattitude*math.pi/180))
+
 class Vector():
     def __init__(self,Angle,magnitude):
         self.angle = Angle
@@ -127,13 +135,12 @@ class Vector():
         return math.sin(self.angle.calc()*math.pi/180)*self.speed()
 
     def meter2degree(self,lat):
-        R=111111
-        dLat = self.ycomp()/R
-        dLon = self.xcomp()/(R*math.cos(lat*math.pi/180))
+        dLat = meter2degreeY(self.ycomp())
+        dLon = meter2degreeX(self.xcomp(),lat)
         return Vector(Angle(1,round(math.atan2(dLat,dLon)*180/math.pi*10000)/10000),math.sqrt(dLon**2+dLat**2))
 
     def degree2meter(self,lat):#obviously this has limitations
-        R=6378137 #earth r
+        R=111111
         dLat = self.ycomp()*R
         dLon = self.xcomp()*(R*math.cos(lat*math.pi/180))
         return Vector(Angle(1,round(math.atan2(dLat,dLon)*180/math.pi*10000)/10000),math.sqrt(dLon**2+dLat**2))

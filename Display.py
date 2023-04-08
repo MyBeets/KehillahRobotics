@@ -76,6 +76,8 @@ class boatDisplayShell():
             #sail drag
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'lime')[0])
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
+        #boat net forces:
+        self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'black')[0])
     def update(self):
         self.boat.update(0.2)
         # t = transforms.Affine2D().translate(self.boat.position.xcomp()-pos[0],self.boat.position.ycomp()-pos[1])
@@ -104,7 +106,6 @@ class boatDisplayShell():
 
             # self.forceDisplay[2*i].set_transform(sum)
             # self.forceDisplay[2*i+1].set_transform(sum)
-
         #sails
         for i, s in enumerate(self.sailDisplay):
             x1 = self.boat.position.xcomp()+meter2degreeX(math.cos((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm,self.refLat)
@@ -118,8 +119,8 @@ class boatDisplayShell():
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailLiftForce(i).xcomp(),self.refLat)])
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailLiftForce(i).ycomp())])
             #drag
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailDragForce(i).xcomp()+self.boat.sailLiftForce(i).xcomp(),self.refLat)])
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailDragForce(i).ycomp()+self.boat.sailLiftForce(i).ycomp())])
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailDragForce(i).xcomp(),self.refLat)])
+            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailDragForce(i).ycomp())])
             
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_transform(sum)
             self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_transform(sum)
@@ -127,8 +128,14 @@ class boatDisplayShell():
             s.set_xdata([x1,x2])
             s.set_ydata([y1,y2])
             #s.set_transform(sum)
-            
-        #connections
+        #boat net forces
+        #self.boat.forces["sails"]+
+        f = self.boat.hullDragForce(1)+self.boat.hullLiftForce(1)+self.boat.sailDragForce(0)+self.boat.sailLiftForce(0)
+        self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX(f.xcomp(),self.refLat)])
+        self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY(f.ycomp())])
+        # self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX((self.boat.forces["hulls"]).xcomp(),self.refLat)])
+        # self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY((self.boat.forces["hulls"]).ycomp())])
+        # #connections
         # for c in self.connections:
 
         #     c.set_transform(sum)
@@ -165,6 +172,7 @@ class display:
         self.text.append(self.axes['C'].text(-0.17, 0.4, "Hull Drag F:0", fontsize=6))
         self.text.append(self.axes['C'].text(-0.17, 0.3, "Sail lift F:0", fontsize=6))
         self.text.append(self.axes['C'].text(-0.17, 0.2, "Sail Drag F:0", fontsize=6))
+        self.text.append(self.axes['C'].text(-0.17, 0.1, "Net Force F:0", fontsize=6))
         self.displayValues()
 
         #credits
@@ -215,6 +223,8 @@ class display:
         #Sail Forces
         self.text[6].set_text("Sail lift F:" + rm_ansi(str(self.boat.boat.sailLiftForce(0))))
         self.text[7].set_text("Sail Drag F:" + rm_ansi(str(self.boat.boat.sailDragForce(0))))
+        #net
+        self.text[8].set_text("Net Force F:" + rm_ansi(str((self.boat.boat.forces["sails"]+self.boat.boat.forces["hulls"]))))
 
 
     def map(self,location):
@@ -263,7 +273,7 @@ if __name__ == "__main__":
 
     vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5,rotInertia = 1,size = 1.8)
     ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 1,size = 1.5)
-    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 1.1,size = 1.5)
+    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 1,size = 1.5)
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
     sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn

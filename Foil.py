@@ -45,12 +45,12 @@ class foil: # sail, foil, rudder
 
     def liftForce(self, aparentV):
         if Angle.norm(self.angle).calc() <= Angle.norm(aparentV.angle+Angle(1,180)).calc():
-            return Vector(aparentV.angle+Angle(1,90),self.lift(aparentV))
+            return Vector(aparentV.angle+Angle(1,90),abs(self.lift(aparentV)))
         else:
-            return Vector(aparentV.angle-Angle(1,90),self.lift(aparentV))
+            return Vector(aparentV.angle-Angle(1,90),abs(self.lift(aparentV)))
 
     def dragForce(self, aparentV):
-        return Vector(aparentV.angle,self.drag(aparentV))
+        return Vector(aparentV.angle,abs(self.drag(aparentV)))
 
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []

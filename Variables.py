@@ -147,9 +147,10 @@ class Vector():
     
     def __add__(self,x):#Returns vector addition in calc format
         #NOTE: I don't like this current method, the use of x components and trig is bad for precision, this should be replaced
-        dx = self.xcomp() + x.xcomp() + 0.0000000001
+        dx = self.xcomp() + x.xcomp() + 0.0000000000001
         dy = self.ycomp() + x.ycomp()
-        return Vector(Angle(1, round(math.atan2(dy,dx)*180/math.pi*10000)/10000),round(math.sqrt(dx*dx+dy*dy)*10000)/10000)
+        return Vector(Angle(1, math.atan2(dy,dx)*180/math.pi),math.sqrt(dx*dx+dy*dy))
+        #return Vector(Angle(1, round(math.atan2(dy,dx)*180/math.pi*10000000)/10000000),round(math.sqrt(dx*dx+dy*dy)*10000000)/10000000)
     def __mul__(self,x):
         if not type(x) == int and not type(x) == float:
             raise Exception("Vector class currently doesn't support non scalar multiplication")

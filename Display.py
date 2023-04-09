@@ -33,10 +33,7 @@ class boatDisplayShell():
         self.sailDisplay = []
         self.connections = []
         self.forceDisplay = []
-        cx = -1
-        cy = -1
         for i, h in enumerate(self.boat.hulls):
-            #verts = [(self.meter2degree(p[0]*h.size+ h.position.xcomp())+self.boat.position.xcomp(),self.meter2degree(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
             verts = [(meter2degreeX(p[0]*h.size+ h.position.xcomp(),self.refLat)+self.boat.position.xcomp(),meter2degreeY(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
             polygon = patches.Polygon(verts, color="gray") 
 
@@ -62,7 +59,6 @@ class boatDisplayShell():
             #         self.connections.append(self.ax.plot([cx,self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())],[cy,self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())], color = 'gray')[0])
             #         cx = self.boat.position.xcomp()+self.meter2degree(h.position.xcomp())
             #         cy = self.boat.position.ycomp()+self.meter2degree(h.position.ycomp())
-        #print(dir(self.hullDisplay[0]))
         for s in self.boat.sails:
             #x1, y1 are the points on the mast
             x1 = self.boat.position.xcomp()+meter2degreeX(math.cos((self.boat.angle.calc()+s.position.angle.calc()-90)*math.pi/180)*s.position.norm,self.refLat)
@@ -75,14 +71,12 @@ class boatDisplayShell():
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'gold')[0])
             #sail drag
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'lime')[0])
-            #self.ax.plot([x1],[y1], color = 'pink') #mast or something
         #boat net forces:
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'black')[0])
         #Boat velocity
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
     def update(self):
         self.boat.update(0.2)
-        # t = transforms.Affine2D().translate(self.boat.position.xcomp()-pos[0],self.boat.position.ycomp()-pos[1])
         r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),self.boat.angle.calc())
         sum = r + self.ax.transData
         #hulls
@@ -90,12 +84,8 @@ class boatDisplayShell():
             hull = copy.deepcopy(self.boat.hulls[i])
             hull.position.angle += Angle.norm(self.boat.angle)
 
-            #pos = self.boat.position + hull.position.meter2degree(self.refLat)
             cx = self.boat.position.xcomp() + meter2degreeX(hull.position.xcomp(),self.refLat)
             cy = self.boat.position.ycomp() + meter2degreeY(hull.position.ycomp())
-            #cx = pos.xcomp()
-            #cy = pos.ycomp()
-            
             #lift
             self.forceDisplay[2*i].set_xdata([cx,cx+meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
             self.forceDisplay[2*i].set_ydata([cy,cy+meter2degreeY(self.boat.hullLiftForce(i).ycomp())])
@@ -108,8 +98,6 @@ class boatDisplayShell():
 
             self.hullDisplay[i].set_transform(sum)
 
-            # self.forceDisplay[2*i].set_transform(sum)
-            # self.forceDisplay[2*i+1].set_transform(sum)
         #sails
         for i, s in enumerate(self.sailDisplay):
             x1 = self.boat.position.xcomp()+meter2degreeX(math.cos((self.boat.angle.calc()+self.boat.sails[i].position.angle.calc()-90)*math.pi/180)*self.boat.sails[i].position.norm,self.refLat)
@@ -145,11 +133,6 @@ class boatDisplayShell():
 
         #     c.set_transform(sum)
 
-    # def meter2degree(self, v):
-    #     return v/(111111* abs(math.cos(self.boat.position.ycomp() * (math.pi / 180))))
-    #     return v/111120
-        #return v*90/1000000
-        #return v/111111
 
 
 class display:
@@ -244,8 +227,6 @@ class display:
         mx = min(x)
         my = min(y)
 
-        dx = max(x)-mx
-        dy = max(y)-my
         #the cordinates are typically in degrees
         x = [(i-mx) for i in x] # normalisation
         y = [(i-my) for i in y]

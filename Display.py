@@ -16,6 +16,7 @@ import math
 import copy
 import re
 
+fps = 30
 
 data_dir = os.path.dirname(__file__) #abs dir
 
@@ -76,7 +77,7 @@ class boatDisplayShell():
         #Boat velocity
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
     def update(self):
-        self.boat.update(0.2)
+        self.boat.update(1/fps*2)
         r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),self.boat.angle.calc())
         sum = r + self.ax.transData
         #hulls
@@ -137,7 +138,7 @@ class boatDisplayShell():
 
 class display:
     def __init__(self,location,boat):
-        self.f, self.axes = plt.subplot_mosaic('AAAB;AAAC', figsize=(8, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
+        self.f, self.axes = plt.subplot_mosaic('AAABD;AAACC', figsize=(10, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
         self.pause = False
         self.track = False
 
@@ -152,20 +153,57 @@ class display:
         self.axes['C'].set_title('Debug Values')
         self.axes['C'].axis('off')
         self.text = []
-        self.text.append(self.axes['C'].text(-0.17, 0.9, "Boat LVelocity V:0", fontsize=5.5))
+        self.text.append(self.axes['C'].text(0, 0.9, "Boat LVelocity V:0", fontsize=9))
         self.text.append(self.axes['C'].text(0, 0.8, "Boat AVelocity V:0", fontsize=9))
-        self.text.append(self.axes['C'].text(-0.17, 0.7, "Hull Apparent A:0", fontsize=6))
-        self.text.append(self.axes['C'].text(-0.17, 0.6, "Sail Apparent A:0", fontsize=6))
-        self.text.append(self.axes['C'].text(-0.17, 0.5, "Hull lift F:0", fontsize=6))
-        self.text.append(self.axes['C'].text(-0.17, 0.4, "Hull Drag F:0", fontsize=6))
-        self.text.append(self.axes['C'].text(-0.17, 0.3, "Sail lift F:0", fontsize=6))
-        self.text.append(self.axes['C'].text(-0.17, 0.2, "Sail Drag F:0", fontsize=6))
-        self.text.append(self.axes['C'].text(-0.17, 0.1, "Net Force F:0", fontsize=6))
-        self.text.append(self.axes['C'].text(-0.17, 0, "Boat Position V:0", fontsize=6))
+        self.text.append(self.axes['C'].text(0, 0.7, "Hull Apparent A:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.6, "Sail Apparent A:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.5, "Hull lift F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.4, "Hull Drag F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.3, "Sail lift F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.2, "Sail Drag F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.1, "Net Force F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0, "Boat Position V:0", fontsize=9))
         self.displayValues()
+
+        self.axes['D'].set_title('Boat Controls')
+        self.axes['D'].axis('off')
+        self.boatControls()
 
         #credits
         plt.figtext(0, 0.01, 'Map: © OpenStreetMap contributors', fontsize = 10)
+
+
+    def bUpdate(self,v):
+        self.boat.boat.angle = Angle(1,self.bRot.val)
+
+    def sUpdate(self,v):
+        self.boat.boat.sails[0].angle = Angle(1,self.sRot.val)
+
+
+    def boatControls(self):
+        bax = plt.axes([0, 0, 1, 1])
+        bforcesInp = InsetPosition(self.axes['D'], [0.5, 0.9, 0.9, 0.1]) #x,y,w,h
+        bax.set_axes_locator(bforcesInp)
+        self.bRot = Slider(
+            ax=bax,
+            label="Boat Rotation:",
+            valmin=-360,
+            valmax=360,
+            valinit=self.boat.boat.angle.calc(),
+        )
+        self.bRot.on_changed(self.bUpdate)
+        sax = plt.axes([0, 0, 1, 1])
+        sforcesInp = InsetPosition(self.axes['D'], [0.45, 0.75, 0.9, 0.1]) #x,y,w,h
+        sax.set_axes_locator(sforcesInp)
+        self.sRot = Slider(
+            ax=sax,
+            label="Sail Rotation:",
+            valmin=-90,
+            valmax=90,
+            valinit=self.boat.boat.sails[0].angle.calc(),
+        )
+        self.sRot.on_changed(self.sUpdate)
+
 
     def pauseT(self,t):
         self.pause = not self.pause
@@ -252,7 +290,7 @@ class display:
             self.displayValues()
 
     def runAnimation(self):
-        anim = FuncAnimation(self.f, self.updateCycle, interval=100, frames=100)
+        anim = FuncAnimation(self.f, self.updateCycle, interval=1000/fps, frames=100)
         plt.show()
         #anim.save('test.gif')
 

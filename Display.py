@@ -78,6 +78,8 @@ class boatDisplayShell():
             #self.ax.plot([x1],[y1], color = 'pink') #mast or something
         #boat net forces:
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'black')[0])
+        #Boat velocity
+        self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
     def update(self):
         self.boat.update(0.2)
         # t = transforms.Affine2D().translate(self.boat.position.xcomp()-pos[0],self.boat.position.ycomp()-pos[1])
@@ -129,13 +131,14 @@ class boatDisplayShell():
 
             s.set_xdata([x1,x2])
             s.set_ydata([y1,y2])
-            #s.set_transform(sum)
+
         #boat net forces
-        #self.boat.forces["sails"]+
-        #f = self.boat.hullDragForce(1)+self.boat.hullLiftForce(1)+self.boat.sailDragForce(0)+self.boat.sailLiftForce(0)
         f = self.boat.forces["sails"]+self.boat.forces["hulls"]
-        self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX(f.xcomp(),self.refLat)])
-        self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY(f.ycomp())])
+        self.forceDisplay[-2].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX(f.xcomp(),self.refLat)])
+        self.forceDisplay[-2].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY(f.ycomp())])
+        #boat velocity
+        self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX(self.boat.linearVelocity.xcomp(),self.refLat)])
+        self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY(self.boat.linearVelocity.ycomp())])
 
         # #connections
         # for c in self.connections:
@@ -175,6 +178,7 @@ class display:
         self.text.append(self.axes['C'].text(-0.17, 0.3, "Sail lift F:0", fontsize=6))
         self.text.append(self.axes['C'].text(-0.17, 0.2, "Sail Drag F:0", fontsize=6))
         self.text.append(self.axes['C'].text(-0.17, 0.1, "Net Force F:0", fontsize=6))
+        self.text.append(self.axes['C'].text(-0.17, 0, "Boat Position V:0", fontsize=6))
         self.displayValues()
 
         #credits
@@ -227,7 +231,10 @@ class display:
         self.text[7].set_text("Sail Drag F:" + rm_ansi(str(self.boat.boat.sailDragForce(0))))
         #net
         self.text[8].set_text("Net Force F:" + rm_ansi(str((self.boat.boat.forces["sails"]+self.boat.boat.forces["hulls"]))))
-
+        #pos 
+        xs = str(self.boat.boat.position.xcomp())
+        ys = str(self.boat.boat.position.ycomp())
+        self.text[9].set_text("Boat Position V:" + rm_ansi("("+xs[0:min(10,len(xs))]+", "+ys[0:min(10,len(ys))]+")"))
 
     def map(self,location):
         cords = regionPolygon(location)

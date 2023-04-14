@@ -142,7 +142,7 @@ class Vector():
     def degree2meter(self,lat):#obviously this has limitations
         R=111111
         dLat = self.ycomp()*R
-        dLon = self.xcomp()*(R*math.cos(lat*math.pi/180))
+        dLon = self.xcomp()*R#(R*math.cos(lat*math.pi/180))
         return Vector(Angle(1,round(math.atan2(dLat,dLon)*180/math.pi*10000)/10000),math.sqrt(dLon**2+dLat**2))
     
     def __add__(self,x):#Returns vector addition in calc format

@@ -76,21 +76,24 @@ class boatDisplayShell():
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'black')[0])
         #Boat velocity
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
+
     def update(self):
         self.boat.update(1/fps*2)
         #hulls
         for i, h in enumerate(self.hullDisplay):
             hull = copy.deepcopy(self.boat.hulls[i])
             hull.position.angle += Angle.norm(self.boat.angle)
-
+            print(hull.position)
             cx = self.boat.position.xcomp() + meter2degreeX(hull.position.xcomp(),self.refLat)
             cy = self.boat.position.ycomp() + meter2degreeY(hull.position.ycomp())
 
-
-            r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle).calc())
-            # r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+self.boat.hulls[i].angle).calc())
-            if i == len(self.hullDisplay)-1:
-                r += transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc())
+            #r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+self.boat.hulls[i].angle).calc())
+            #print(self.boat.hulls[i].angle)
+            #if i == len(self.hullDisplay)-1:
+                #print(Angle.norm(hull.position.angle),Angle.norm(self.boat.angle))
+                #r += transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc())
+            print(self.boat.angle+self.boat.hulls[i].angle)
+            r = transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc())
             sum = r + self.ax.transData
 
 
@@ -105,7 +108,7 @@ class boatDisplayShell():
             #verts = [(meter2degreeX(p[0]*self.boat.hulls[i].size+ self.boat.hulls[i].position.xcomp(),self.refLat)+self.boat.position.xcomp(),meter2degreeY(p[1]*self.boat.hulls[i].size+self.boat.hulls[i].position.ycomp())+self.boat.position.ycomp()) for p in self.boat.hulls[i].polygon]
             self.hullDisplay[i].set_xy(verts)
 
-            #self.hullDisplay[i].set_transform(sum)
+            self.hullDisplay[i].set_transform(sum)
 
         #sails
         for i, s in enumerate(self.sailDisplay):
@@ -193,13 +196,13 @@ class display:
 
     def boatControls(self):
         bax = plt.axes([0, 0, 1, 1])
-        bforcesInp = InsetPosition(self.axes['D'], [0.5, 0.9, 0.9, 0.1]) #x,y,w,h
+        bforcesInp = InsetPosition(self.axes['D'], [0.6, 0.9, 0.9, 0.1]) #x,y,w,h
         bax.set_axes_locator(bforcesInp)
         self.bRot = Slider(
             ax=bax,
-            label="Boat Rotation:",
-            valmin=-360,
-            valmax=360,
+            label="Rudder Rotation:",
+            valmin=-90,
+            valmax=90,
             valinit=self.boat.boat.angle.calc(),
         )
         self.bRot.on_changed(self.bUpdate)

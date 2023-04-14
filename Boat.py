@@ -40,7 +40,7 @@ class Boat:
         #d = v*dt +1/2*a*dt^2
         disp = self.linearVelocity*dt+(a*(dt**2))*0.5
         self.position += disp.meter2degree(self.refLat)
-
+        
     def degree2meter(self, vect):
         vect2 = copy.deepcopy(vect)
         #vect2.norm *= 1000000/90

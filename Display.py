@@ -78,8 +78,6 @@ class boatDisplayShell():
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
     def update(self):
         self.boat.update(1/fps*2)
-        r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),self.boat.angle.calc())
-        sum = r + self.ax.transData
         #hulls
         for i, h in enumerate(self.hullDisplay):
             hull = copy.deepcopy(self.boat.hulls[i])
@@ -87,6 +85,15 @@ class boatDisplayShell():
 
             cx = self.boat.position.xcomp() + meter2degreeX(hull.position.xcomp(),self.refLat)
             cy = self.boat.position.ycomp() + meter2degreeY(hull.position.ycomp())
+
+
+            r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle).calc())
+            # r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+self.boat.hulls[i].angle).calc())
+            if i == len(self.hullDisplay)-1:
+                r += transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc())
+            sum = r + self.ax.transData
+
+
             #lift
             self.forceDisplay[2*i].set_xdata([cx,cx+meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
             self.forceDisplay[2*i].set_ydata([cy,cy+meter2degreeY(self.boat.hullLiftForce(i).ycomp())])
@@ -94,10 +101,11 @@ class boatDisplayShell():
             self.forceDisplay[2*i+1].set_xdata([cx,cx+meter2degreeX(self.boat.hullDragForce(i).xcomp(),self.refLat)])
             self.forceDisplay[2*i+1].set_ydata([cy,cy+meter2degreeY(self.boat.hullDragForce(i).ycomp())])
             #tranforms
-            verts = [(meter2degreeX(p[0]*self.boat.hulls[i].size+ self.boat.hulls[i].position.xcomp(),self.refLat)+self.boat.position.xcomp(),meter2degreeY(p[1]*self.boat.hulls[i].size+self.boat.hulls[i].position.ycomp())+self.boat.position.ycomp()) for p in self.boat.hulls[i].polygon]
+            verts = [(meter2degreeX(p[0]*self.boat.hulls[i].size,self.refLat)+cx,meter2degreeY(p[1]*self.boat.hulls[i].size)+cy) for p in self.boat.hulls[i].polygon]
+            #verts = [(meter2degreeX(p[0]*self.boat.hulls[i].size+ self.boat.hulls[i].position.xcomp(),self.refLat)+self.boat.position.xcomp(),meter2degreeY(p[1]*self.boat.hulls[i].size+self.boat.hulls[i].position.ycomp())+self.boat.position.ycomp()) for p in self.boat.hulls[i].polygon]
             self.hullDisplay[i].set_xy(verts)
 
-            self.hullDisplay[i].set_transform(sum)
+            #self.hullDisplay[i].set_transform(sum)
 
         #sails
         for i, s in enumerate(self.sailDisplay):
@@ -108,6 +116,8 @@ class boatDisplayShell():
             
             CEx = x1+meter2degreeX(math.cos((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2,self.refLat)
             CEy = y1+meter2degreeY(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2)
+            # CEx = x1
+            # CEy = y1
             #lift
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailLiftForce(i).xcomp(),self.refLat)])
             self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailLiftForce(i).ycomp())])
@@ -115,8 +125,8 @@ class boatDisplayShell():
             self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailDragForce(i).xcomp(),self.refLat)])
             self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailDragForce(i).ycomp())])
             
-            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_transform(sum)
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_transform(sum)
+            # self.forceDisplay[2*i+len(self.hullDisplay)*2].set_transform(sum)
+            # self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_transform(sum)
 
             s.set_xdata([x1,x2])
             s.set_ydata([y1,y2])
@@ -174,7 +184,8 @@ class display:
 
 
     def bUpdate(self,v):
-        self.boat.boat.angle = Angle(1,self.bRot.val)
+        # self.boat.boat.angle = Angle(1,self.bRot.val)
+        self.boat.boat.hulls[-1].angle = Angle(1,self.bRot.val)
 
     def sUpdate(self,v):
         self.boat.boat.sails[0].angle = Angle(1,self.sRot.val)
@@ -302,12 +313,13 @@ if __name__ == "__main__":
     vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5,rotInertia = 1,size = 1.8)
     ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 1,size = 1.5)
     ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 1,size = 1.5)
+    rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 1, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 1,size = 0.3)
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
     sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
     xpos = -122.09064
     ypos = 37.431749
-    boat = Boat([ama1,vaka,ama2],[sail],wind,refLat=ypos)
+    boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,refLat=ypos)
     boat.angle = Angle(1,0)
     sail.angle = Angle(1,30)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))

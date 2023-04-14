@@ -121,7 +121,7 @@ def meter2degreeY(displacement):
 
 def meter2degreeX(displacement, lattitude):
     R=111111
-    return displacement/(R*math.cos(lattitude*math.pi/180))
+    return displacement/R#(R*math.cos(lattitude*math.pi/180))
 
 class Vector():
     def __init__(self,Angle,magnitude):

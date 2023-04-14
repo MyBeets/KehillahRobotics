@@ -86,13 +86,12 @@ class boatDisplayShell():
             print(hull.position)
             cx = self.boat.position.xcomp() + meter2degreeX(hull.position.xcomp(),self.refLat)
             cy = self.boat.position.ycomp() + meter2degreeY(hull.position.ycomp())
-
             #r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+self.boat.hulls[i].angle).calc())
             #print(self.boat.hulls[i].angle)
             #if i == len(self.hullDisplay)-1:
                 #print(Angle.norm(hull.position.angle),Angle.norm(self.boat.angle))
                 #r += transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc())
-            print(self.boat.angle+self.boat.hulls[i].angle)
+            #print(self.boat.angle+self.boat.hulls[i].angle)
             r = transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc())
             sum = r + self.ax.transData
 

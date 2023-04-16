@@ -41,11 +41,11 @@ class Boat:
         disp = self.linearVelocity*dt+(a*(dt**2))*0.5
         self.position += disp.meter2degree(self.refLat)
         
-    def degree2meter(self, vect):
-        vect2 = copy.deepcopy(vect)
-        #vect2.norm *= 1000000/90
-        vect2.norm *=(111.32 * 1000 * math.cos(self.position.ycomp() * (math.pi / 180)))/3
-        return vect2
+    # def degree2meter(self, vect): # DEPRECATED 
+    #     vect2 = copy.deepcopy(vect)
+    #     #vect2.norm *= 1000000/90
+    #     vect2.norm *=(111.32 * 1000 * math.cos(self.position.ycomp() * (math.pi / 180)))/3
+    #     return vect2
     
     def updateRotation(self, dt):
         sMoments = self.moments["sails"] + self.moments["hulls"]
@@ -53,14 +53,14 @@ class Boat:
         alfa = sMoments/sI
         #d theta = w*dt +1/2*alfa*dt^2
         self.angle += Angle(1,self.rotationalVelocity*dt+(alfa*dt**2)/2)
-        # self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
+        #self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
 
     def updateLinearVelocity(self,dt):
         #not using extend is on purpose, extend modifies the variable
         #vf=v0+a*dt
         ax = (self.forces["sails"]+self.forces["hulls"]).xcomp()/self.mass
         ay = (self.forces["sails"]+self.forces["hulls"]).ycomp()/self.mass
-        a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*10000)/10000),math.sqrt(ax**2+ay**2))
+        a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*1000000)/1000000),math.sqrt(ax**2+ay**2))
         a *= dt
         self.linearVelocity += a
 
@@ -78,7 +78,8 @@ class Boat:
         for idx in range(len(self.sails)):
             force = self.sailLiftForce(idx) + self.sailDragForce(idx)
             self.forces["sails"] += force
-            self.moments["sails"] += self.sails[idx].moment(force) # slightly unnecessary for a sail but could be usefull
+            #self.moments["sails"] += self.sails[idx].moment(force) # slightly unnecessary for a sail but could be usefull
+            #print("sail",self.sails[idx].moment(force))
 
     def updateHullForcesandMoments(self):
         self.forces["hulls"] = Vector(Angle(1,0),0)
@@ -129,9 +130,9 @@ class Boat:
         # #First get current angular velocity (tangential to roation)
         V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
         # #Then combine with linear velocity
-        V += self.linearVelocity
+        V = copy.deepcopy(self.linearVelocity)
         #Finally make aparent
-        V.angle -= self.hulls[idx].angle
+        V.angle -= (self.angle+self.hulls[idx].angle)
         #flip it
         V.angle += Angle(1,180)
         return V

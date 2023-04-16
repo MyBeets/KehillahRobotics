@@ -34,23 +34,41 @@ class foil: # sail, foil, rudder
         return poly
         
     def moment(self,force):
-        return self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
+        if math.cos(self.position.angle.calc()*math.pi/180)*self.position.norm >= 0: # simple convention on rotation 
+            return self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
+        else:
+            return -self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
 
     def drag(self, aparentV):
         # the + Angle(1,180) is to flip the wind from direction pointing to direction of arrival
+        # print(self.cd(Angle.norm(aparentV.angle+Angle(1,180))),Angle.norm(aparentV.angle+Angle(1,180)))
         return (self.cd(Angle.norm(aparentV.angle+Angle(1,180))) * self.mat * pow(aparentV.speed(),2) *self.area)/2
 
     def lift(self, aparentV):
         return (self.cl(Angle.norm(aparentV.angle+Angle(1,180))) * self.mat * pow(aparentV.speed(),2) *self.area)/2
 
     def liftForce(self, aparentV):
-        if Angle.norm(self.angle).calc() <= Angle.norm(aparentV.angle+Angle(1,180)).calc():
-            return Vector(aparentV.angle+Angle(1,90),abs(self.lift(aparentV)))
+        lift = self.lift(aparentV)
+        # print(Angle.norm(aparentV.angle+Angle(1,180)),self.mat)
+
+        if Angle.norm(aparentV.angle+Angle(1,180)).calc() >= 0:
+            if lift < 0: # if lift is negative we flip dirrection such that magnitude is always positive
+                return Vector(aparentV.angle+Angle(1,270),-lift)# 90+180
+            else:
+                return Vector(aparentV.angle+Angle(1,90),lift)
         else:
-            return Vector(aparentV.angle-Angle(1,90),abs(self.lift(aparentV)))
+            if lift < 0:# if lift is negative we flip dirrection such that magnitude is always positive
+                return Vector(aparentV.angle+Angle(1,90),-lift) # 180-90
+            else:
+                return Vector(aparentV.angle-Angle(1,90),lift)
 
     def dragForce(self, aparentV):
-        return Vector(aparentV.angle,abs(self.drag(aparentV)))
+        drag = self.drag(aparentV)
+        if drag < 0:
+            return Vector(aparentV.angle+Angle(1,180),-drag)
+        else:
+            return Vector(aparentV.angle,drag)
+        #return Vector(aparentV.angle,abs(self.drag(aparentV)))
 
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []
@@ -95,6 +113,7 @@ class foil: # sail, foil, rudder
         last = self.dragC[-1][0].data()
         if a > last:
             a =last - a%last
+        # print(a)
         return self.linearInterpolation(self.dragC,a)
     def cl(self, a):
         a = abs(a.data())

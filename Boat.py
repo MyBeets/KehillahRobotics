@@ -52,7 +52,8 @@ class Boat:
         sI = sum([h.I for h in self.hulls]) + sum([s.I for s in self.sails])
         alfa = sMoments/sI
         #d theta = w*dt +1/2*alfa*dt^2
-        self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
+        self.angle += Angle(1,self.rotationalVelocity*dt+(alfa*dt**2)/2)
+        # self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
 
     def updateLinearVelocity(self,dt):
         #not using extend is on purpose, extend modifies the variable
@@ -86,26 +87,27 @@ class Boat:
             force = self.hullLiftForce(idx) + self.hullDragForce(idx)
             self.forces["hulls"] += force
             self.moments["hulls"] += self.hulls[idx].moment(force)
+            #print(self.hulls[idx].moment(force))
 
     def sailDragForce(self,idx=0):
         aparentForce = self.sails[idx].dragForce(self.sailAparentWind(idx))
-        trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle,aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce
     def sailLiftForce(self,idx=0):
         aparentForce = self.sails[idx].liftForce(self.sailAparentWind(idx))
-        trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce = Vector(aparentForce.angle + self.angle + self.sails[idx].angle,aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce
 
     def hullDragForce(self,idx=0):
         aparentForce = self.hulls[idx].dragForce(self.hullAparentWind(idx))
-        trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle,aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce
     def hullLiftForce(self,idx=0):
         aparentForce = self.hulls[idx].liftForce(self.hullAparentWind(idx))
-        trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle - Angle(1,90),aparentForce.norm)
+        trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle,aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce
 
@@ -115,15 +117,14 @@ class Boat:
     
     def sailAparentWind(self,idx=0):
         # returns local aparent wind on boat (ie: wind angle in perspective of given sail)
-        ap = self.globalAparentWind()
-        ap.angle = ap.angle-(self.sails[idx].angle+self.angle-Angle(1,90))
+        ap = self.globalAparentWind() 
+        ap.angle += Angle(1,180)
+        ap.angle = ap.angle-(self.sails[idx].angle+self.angle)
+        ap.angle += Angle(1,180)
         return ap
 
     def hullAparentWind(self,idx=0):
         # returns aparent water velocity on a hull 
-
-        # V = self.linearVelocity.degree2meter(self.refLat)
-        #V = self.linearVelocity*1.000001
 
         # #First get current angular velocity (tangential to roation)
         V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
@@ -131,7 +132,8 @@ class Boat:
         V += self.linearVelocity
         #Finally make aparent
         V.angle -= self.hulls[idx].angle
-        V.angle += Angle(1,180) #flip it
+        #flip it
+        V.angle += Angle(1,180)
         return V
 
     #TODO: maybe have a method for getting true wind angle from apparent wind for acutal boat

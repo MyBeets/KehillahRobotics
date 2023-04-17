@@ -78,21 +78,16 @@ class boatDisplayShell():
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
 
     def update(self):
-        self.boat.update(1/fps*2)
+        self.boat.update(1/fps*4)
         #hulls
         for i, h in enumerate(self.hullDisplay):
             hull = copy.deepcopy(self.boat.hulls[i])
             hull.position.angle += Angle.norm(self.boat.angle)
-            print(hull.position)
+            #print(hull.position)
             cx = self.boat.position.xcomp() + meter2degreeX(hull.position.xcomp(),self.refLat)
             cy = self.boat.position.ycomp() + meter2degreeY(hull.position.ycomp())
-            #r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+self.boat.hulls[i].angle).calc())
-            #print(self.boat.hulls[i].angle)
-            #if i == len(self.hullDisplay)-1:
-                #print(Angle.norm(hull.position.angle),Angle.norm(self.boat.angle))
-                #r += transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc())
-            #print(self.boat.angle+self.boat.hulls[i].angle)
-            r = transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc())
+
+            r = transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc()) # NOTE: This is not a mistake
             sum = r + self.ax.transData
 
 
@@ -316,12 +311,12 @@ if __name__ == "__main__":
     ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 1,size = 1.5)
     ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 1,size = 1.5)
     rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 1, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 1,size = 0.3)
-    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
+    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1.5, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
     sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
     xpos = -122.09064
     ypos = 37.431749
-    boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,refLat=ypos)
+    boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,mass =10,refLat=ypos)
     boat.angle = Angle(1,0)
     sail.angle = Angle(1,30)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))

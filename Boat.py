@@ -130,10 +130,10 @@ class Boat:
     def hullAparentWind(self,idx=0):
         # returns aparent water velocity on a hull 
         # #First get current angular velocity (tangential to roation)
-        #V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
+        V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
         # Then combine with linear velocity, NOTE: if you disactivate rotational added speed use deepcopy for the next line
-        V = copy.deepcopy(self.linearVelocity)
-        # V += self.linearVelocity
+        #V = copy.deepcopy(self.linearVelocity)
+        V += self.linearVelocity
         #Finally make aparent
         V.angle -= (self.angle+self.hulls[idx].angle)
         #flip it as we wish to mesure the flow AGAINST hull

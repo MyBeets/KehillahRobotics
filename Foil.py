@@ -47,11 +47,13 @@ class foil: # sail, foil, rudder
     def lift(self, aparentV):
         return (self.cl(Angle.norm(aparentV.angle+Angle(1,180))) * self.mat * pow(aparentV.speed(),2) *self.area)/2
 
+
+    #CONVENTION: For all this apparent wind stuff wind should always point in the dirrection it's going, so for a hull that's flow direction
     def liftForce(self, aparentV):
         lift = self.lift(aparentV)
-        # print(Angle.norm(aparentV.angle+Angle(1,180)),self.mat)
+        #print(aparentV,self.mat)
 
-        if Angle.norm(aparentV.angle+Angle(1,180)).calc() >= 0:
+        if Angle.norm(aparentV.angle).calc() >= 180: # this is to split cases where wind is port or starboard
             if lift < 0: # if lift is negative we flip dirrection such that magnitude is always positive
                 return Vector(aparentV.angle+Angle(1,270),-lift)# 90+180
             else:
@@ -64,6 +66,9 @@ class foil: # sail, foil, rudder
 
     def dragForce(self, aparentV):
         drag = self.drag(aparentV)
+        #print(aparentV,drag)
+        #print(aparentV.angle,self.mat)
+        #return Vector(aparentV.angle,drag)
         if drag < 0:
             return Vector(aparentV.angle+Angle(1,180),-drag)
         else:

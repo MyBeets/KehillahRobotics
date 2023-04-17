@@ -52,7 +52,7 @@ class Boat:
         sI = sum([h.I for h in self.hulls]) + sum([s.I for s in self.sails])
         alfa = sMoments/sI
         #d theta = w*dt +1/2*alfa*dt^2
-        self.angle += Angle(1,self.rotationalVelocity*dt+(alfa*dt**2)/2)
+        self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
         #self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
 
     def updateLinearVelocity(self,dt):
@@ -107,6 +107,7 @@ class Boat:
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce
     def hullLiftForce(self,idx=0):
+        #print(self.hullAparentWind(idx),idx)
         aparentForce = self.hulls[idx].liftForce(self.hullAparentWind(idx))
         trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle,aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
@@ -116,6 +117,8 @@ class Boat:
         # returns global aparent wind on boat
         return self.wind-self.linearVelocity
     
+
+    #CONVENTION: For all this apparent wind stuff wind should always point in the dirrection it's going, so for a hull that's flow direction
     def sailAparentWind(self,idx=0):
         # returns local aparent wind on boat (ie: wind angle in perspective of given sail)
         ap = self.globalAparentWind() 
@@ -126,14 +129,14 @@ class Boat:
 
     def hullAparentWind(self,idx=0):
         # returns aparent water velocity on a hull 
-
         # #First get current angular velocity (tangential to roation)
-        V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
-        # #Then combine with linear velocity
+        #V = Vector(self.angle,self.rotationalVelocity*self.hulls[idx].position.norm)
+        # Then combine with linear velocity, NOTE: if you disactivate rotational added speed use deepcopy for the next line
         V = copy.deepcopy(self.linearVelocity)
+        # V += self.linearVelocity
         #Finally make aparent
         V.angle -= (self.angle+self.hulls[idx].angle)
-        #flip it
+        #flip it as we wish to mesure the flow AGAINST hull
         V.angle += Angle(1,180)
         return V
 

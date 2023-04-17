@@ -5,6 +5,10 @@
 * Allow for navigation algorithm testing that accurately replicates how the boat would behave in water
 * Calculate optimal sail trim, Best VMG, and general headings for variable hulls and sails
 
+# TODO:
+* Sail physics
+    * Sail should behave like real sail to properly simulate jibes and tacks
+
 # Citations:
 * Boeing, G. 2017. ["OSMnx: New Methods for Acquiring, Constructing, Analyzing, and Visualizing Complex Street Networks."](https://geoffboeing.com/publications/osmnx-complex-street-networks/) Computers, Environment and Urban Systems 65, 126-139. doi:10.1016/j.compenvurbsys.2017.05.004
 

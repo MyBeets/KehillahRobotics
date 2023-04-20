@@ -32,12 +32,12 @@ class foil: # sail, foil, rudder
                 poly.append([float(i) for i in line.split()])
                 poly[-1][0] = -poly[-1][0]+0.5
         return poly
-        
+
     def moment(self,force):
         if math.cos(self.position.angle.calc()*math.pi/180)*self.position.norm >= 0: # simple convention on rotation 
-            return self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
-        else:
             return -self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
+        else:
+            return self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
 
     def drag(self, aparentV):
         # the + Angle(1,180) is to flip the wind from direction pointing to direction of arrival
@@ -123,6 +123,8 @@ class foil: # sail, foil, rudder
         return self.linearInterpolation(self.dragC,a)
     def cl(self, a):
         a = abs(a.data())
+        #if self.mat == 1:
+            #print(self.mat,a,self.linearInterpolation(self.liftC,a))
         a %= 360
         last = self.liftC[-1][0].data()
         if a > last: 

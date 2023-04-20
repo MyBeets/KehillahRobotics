@@ -308,10 +308,10 @@ if __name__ == "__main__":
     lakeShoreline = "Shoreline lake, Mountain View, Santa Clara County, California, United States"
 
     vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5,rotInertia = 1,size = 1.8)
-    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 1,size = 1.5)
-    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 1,size = 1.5)
-    rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 1, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 1,size = 0.3)
-    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1.5, position = Vector(Angle(1,90),0.4),rotInertia = 1,size = 0.7)
+    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 10,size = 1.5)
+    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 10,size = 1.5)
+    rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 1, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 10,size = 0.3)
+    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1.5, position = Vector(Angle(1,90),0.4),rotInertia = 10,size = 0.7)
     sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
     xpos = -122.09064

@@ -113,6 +113,7 @@ class foil: # sail, foil, rudder
         return s*(value-list[idx][0].data())+list[idx][1]
 
     def cd(self, a):
+        #NOTE: CURRENTLY TESTING bug where data angle shouldn't be used here
         a = abs(a.data())
         a %= 360
         last = self.dragC[-1][0].data()

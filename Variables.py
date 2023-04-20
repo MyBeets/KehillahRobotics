@@ -58,6 +58,14 @@ class Angle(Variable):
  (-)90--- 90
        |180
 
+       
+    data angles 2 (no negatives, 0-180)
+
+       |90
+   180--- 0
+       |-90
+
+
 
     Calc (unit circle)
 
@@ -102,7 +110,13 @@ class Angle(Variable):
     def calc2display(self):
         return -self.value +180
     def calc2data(self):
-        return abs(90-self.value)
+        # testing for data angle 2.
+        self = self.norm(self)
+        if self.value <= 180:
+            return self.value
+        else:
+            return -(360-self.value)
+        #return abs(90-self.value)
     @staticmethod
     def norm(v):
         if v.type == 1 or v.type ==2: #calc and display

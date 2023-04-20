@@ -52,7 +52,7 @@ class Boat:
         sI = sum([h.I for h in self.hulls]) + sum([s.I for s in self.sails])
         alfa = sMoments/sI
         #d theta = w*dt +1/2*alfa*dt^2
-        self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
+        self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)#
         #self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
 
     def updateLinearVelocity(self,dt):
@@ -78,6 +78,7 @@ class Boat:
         for idx in range(len(self.sails)):
             force = self.sailLiftForce(idx) + self.sailDragForce(idx)
             self.forces["sails"] += force
+            #NOTE: For sail torque things become a bit more complex
             #self.moments["sails"] += self.sails[idx].moment(force) # slightly unnecessary for a sail but could be usefull
             #print("sail",self.sails[idx].moment(force))
 
@@ -88,7 +89,7 @@ class Boat:
             force = self.hullLiftForce(idx) + self.hullDragForce(idx)
             self.forces["hulls"] += force
             self.moments["hulls"] += self.hulls[idx].moment(force)
-            #print(self.hulls[idx].moment(force))
+            #print(idx,self.hulls[idx].moment(force))
 
     def sailDragForce(self,idx=0):
         aparentForce = self.sails[idx].dragForce(self.sailAparentWind(idx))

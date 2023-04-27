@@ -127,7 +127,10 @@ class Angle(Variable):
     def __sub__(self,x):
         return Angle(self.type, self.norm(self).value-self.norm(x).nType(self.type))
     def __mul__(self,x):
-        return Angle(self.type, self.norm(self).value*self.norm(x).nType(self.type))
+        if type(x) == int or type(x) == float:
+            return Angle(self.type, self.norm(self).value*x)
+        else:
+            return Angle(self.type, self.norm(self).value*self.norm(x).nType(self.type))
 
 def meter2degreeY(displacement):
     R=111111

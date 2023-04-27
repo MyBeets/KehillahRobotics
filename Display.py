@@ -16,7 +16,7 @@ import math
 import copy
 import re
 
-fps = 30
+fps = 70
 
 data_dir = os.path.dirname(__file__) #abs dir
 
@@ -78,7 +78,7 @@ class boatDisplayShell():
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
 
     def update(self):
-        self.boat.update(1/fps*4)
+        self.boat.update(1/fps)#*4
         #hulls
         for i, h in enumerate(self.hullDisplay):
             hull = copy.deepcopy(self.boat.hulls[i])
@@ -145,9 +145,10 @@ class boatDisplayShell():
 
 class display:
     def __init__(self,location,boat):
-        self.f, self.axes = plt.subplot_mosaic('AAABD;AAACC', figsize=(10, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
+        self.f, self.axes = plt.subplot_mosaic('AAABDE;AAACCE', figsize=(12, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
         self.pause = False
         self.track = False
+        self.time = 0
 
         self.boat = boatDisplayShell(boat,self.axes['A'],boat.position.ycomp())
         self.map(location) # creates map and sets units
@@ -168,8 +169,9 @@ class display:
         self.text.append(self.axes['C'].text(0, 0.4, "Hull Drag F:0", fontsize=9))
         self.text.append(self.axes['C'].text(0, 0.3, "Sail lift F:0", fontsize=9))
         self.text.append(self.axes['C'].text(0, 0.2, "Sail Drag F:0", fontsize=9))
-        self.text.append(self.axes['C'].text(0, 0.1, "Net Force F:0", fontsize=9))
-        self.text.append(self.axes['C'].text(0, 0, "Boat Position V:0", fontsize=9))
+        #self.text.append(self.axes['C'].text(0, 0.1, "Net Force F:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0.1, "Boat Position V:0", fontsize=9))
+        self.text.append(self.axes['C'].text(0, 0, "Time (s):0", fontsize=9))
         self.displayValues()
 
         self.axes['D'].set_title('Boat Controls')
@@ -245,10 +247,16 @@ class display:
         self.zoomButton = Button(Z_button_ax, 'Track Boat')
         self.zoomButton.on_clicked(self.trackZ)
 
+        A_button_ax = plt.axes([0, 0, 1, 1])
+        autoInp = InsetPosition(self.axes['B'], [0, 0.54, 0.9, 0.1]) #x,y,w,h
+        A_button_ax.set_axes_locator(autoInp)
+        self.autoButton = Button(A_button_ax, 'Auto Pilot: OFF')
+        #self.zoomButton.on_clicked(self.trackZ)
+
     def displayValues(self):
         #Velocity
         self.text[0].set_text("Boat LVelocity V:" + rm_ansi(str(self.boat.boat.linearVelocity)))
-        self.text[1].set_text("Boat AVelocity V:" + rm_ansi(str(round(self.boat.boat.rotationalVelocity*10000)/10000)))
+        self.text[1].set_text("Boat AVelocity V:" + rm_ansi(str(round(self.boat.boat.rotationalVelocity*180/math.pi*10000)/10000)))
         #Apparent Wind
         self.text[2].set_text("Hull Apparent V:" + rm_ansi(str(self.boat.boat.hullAparentWind(1))).replace("Vector",""))
         self.text[3].set_text("Sail Apparent V:" + rm_ansi(str(self.boat.boat.sailAparentWind(0))).replace("Vector",""))
@@ -259,11 +267,13 @@ class display:
         self.text[6].set_text("Sail lift F:" + rm_ansi(str(self.boat.boat.sailLiftForce(0))))
         self.text[7].set_text("Sail Drag F:" + rm_ansi(str(self.boat.boat.sailDragForce(0))))
         #net
-        self.text[8].set_text("Net Force F:" + rm_ansi(str((self.boat.boat.forces["sails"]+self.boat.boat.forces["hulls"]))))
+        #self.text[8].set_text("Net Force F:" + rm_ansi(str((self.boat.boat.forces["sails"]+self.boat.boat.forces["hulls"]))))
         #pos 
         xs = str(self.boat.boat.position.xcomp())
         ys = str(self.boat.boat.position.ycomp())
-        self.text[9].set_text("Boat Position V:" + rm_ansi("("+xs[0:min(10,len(xs))]+", "+ys[0:min(10,len(ys))]+")"))
+        self.text[8].set_text("Boat Position V:" + rm_ansi("("+xs[0:min(10,len(xs))]+", "+ys[0:min(10,len(ys))]+")"))
+
+        self.text[9].set_text("Time (s):"+str(self.time))
 
     def map(self,location):
         cords = regionPolygon(location)
@@ -289,6 +299,7 @@ class display:
     def updateCycle(self,f):
         if not self.pause:
             self.boat.update()
+            self.time +=1/fps
             if self.track:
                 dx = self.axes['A'].get_xlim()[1]-self.axes['A'].get_xlim()[0]
                 dy = self.axes['A'].get_ylim()[1]-self.axes['A'].get_ylim()[0]
@@ -296,9 +307,10 @@ class display:
                 self.axes['A'].set_xlim(self.boat.boat.position.xcomp()-dm/2,self.boat.boat.position.xcomp()+dm/2)
                 self.axes['A'].set_ylim(self.boat.boat.position.ycomp()-dm/2,self.boat.boat.position.ycomp()+dm/2)
             self.displayValues()
+        #return self.boat.forceDisplay+self.boat.hullDisplay+self.boat.sailDisplay+self.text #list(self.axes.values())+
 
     def runAnimation(self):
-        anim = FuncAnimation(self.f, self.updateCycle, interval=1000/fps, frames=100)
+        anim = FuncAnimation(self.f, self.updateCycle, interval=1000/fps,cache_frame_data=False)#,blit = True)
         plt.show()
         #anim.save('test.gif')
 
@@ -307,16 +319,16 @@ if __name__ == "__main__":
     lakeAttitash = "Lake Attitash, Amesbury, Essex County, Massachusetts, USA"
     lakeShoreline = "Shoreline lake, Mountain View, Santa Clara County, California, United States"
 
-    vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 1, 0.5,rotInertia = 1,size = 1.8)
-    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 10,size = 1.5)
-    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 1, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 10,size = 1.5)
-    rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 1, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 10,size = 0.3)
-    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 0.128, 1.5, position = Vector(Angle(1,90),0.4),rotInertia = 10,size = 0.7)
+    vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 997.77, 0.25,rotInertia = 15,size = 1.8)
+    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 100,size = 1.5)
+    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 100,size = 1.5)
+    rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 997.77, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 100,size = 0.3)
+    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7)
     sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
     xpos = -122.09064
     ypos = 37.431749
-    boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,mass =10,refLat=ypos)
+    boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,mass =15,refLat=ypos)
     boat.angle = Angle(1,0)
     sail.angle = Angle(1,30)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))

@@ -1,5 +1,6 @@
 # I'll start out with a simple test that aims to maintain a certain direction
 import math
+from Variables import *
 class Controler():
     def __init__(self,Boat, waypoint):
         self.boat = Boat
@@ -7,6 +8,18 @@ class Controler():
     def update(self,dt):
         dx = self.waypoint[0]-self.boat.position.xcomp()
         dy = self.waypoint[1]-self.boat.position.ycomp()
-        target_angle = math.atan2(dy,dx)*180/math.pi
-        current_angle = self.linearVelocity.angle.calc()
+        target_angle = Angle(1,math.atan2(dy,dx)*180/math.pi)
+        current_angle = self.boat.linearVelocity.angle
+        dtheta = (target_angle - current_angle).calc()
+        rotV = self.boat.rotationalVelocity*180/math.pi *0.03
+        # coeff = 1-(1/(dtheta.calc()*(1/rotV)+1))
+        dtheta %=360
+        if dtheta > 180:
+            dtheta = -180 + dtheta-180
+        coeff = math.atan((dtheta)/50) - rotV
+        self.boat.hulls[-1].angle = Angle(1,-10*coeff)
+        # if dtheta.calc() > 0:
+        #     self.boat.hulls[-1].angle = self.boat.hulls[-1].angle*-1
+        print(dtheta,target_angle,coeff,self.boat.hulls[-1].angle)
         
+        #self.boat.hulls[-1].angle += dtheta*dt

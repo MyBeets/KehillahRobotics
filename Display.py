@@ -10,6 +10,8 @@ from Map import regionPolygon, loadGrib
 from Foil import foil
 from Variables import *
 from Boat import Boat
+from Control import Controler
+from Compressor import Compressor
 #Other
 import os
 import math
@@ -29,6 +31,10 @@ class boatDisplayShell():
         self.ax = ax
         self.boat = Boat
         self.refLat =refLat
+    def initAuto(self):
+        #This function needs to be ran after some other stuff
+        self.autopilot = Controler(self.boat,[self.boat.position.xcomp()+0.0001,self.boat.position.ycomp()+0.0001])
+        self.ax.plot([self.boat.position.xcomp(),self.boat.position.xcomp()+0.0001],[self.boat.position.ycomp(),self.boat.position.ycomp()+0.0001], color = 'red')
     def createBoat(self):
         self.hullDisplay = []
         self.sailDisplay = []
@@ -77,8 +83,10 @@ class boatDisplayShell():
         #Boat velocity
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
 
-    def update(self):
+    def update(self, auto):
         self.boat.update(1/fps)#*4
+        if auto:
+            self.autopilot.update(1/fps)
         #hulls
         for i, h in enumerate(self.hullDisplay):
             hull = copy.deepcopy(self.boat.hulls[i])
@@ -148,10 +156,12 @@ class display:
         self.f, self.axes = plt.subplot_mosaic('AAABDE;AAACCE', figsize=(12, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
         self.pause = False
         self.track = False
+        self.auto = False
         self.time = 0
 
         self.boat = boatDisplayShell(boat,self.axes['A'],boat.position.ycomp())
         self.map(location) # creates map and sets units
+        self.boat.initAuto()
         self.boat.createBoat()
 
         self.axes['B'].set_title('Display Settings')
@@ -228,6 +238,12 @@ class display:
             self.zoomButton.label.set_text('Stop Tracking')
         else:
             self.zoomButton.label.set_text('Track Boat')
+    def autoF(self,t):
+        self.auto = not self.auto
+        if self.auto:
+            self.autoButton.label.set_text('Auto Pilot: ON')
+        else:
+            self.autoButton.label.set_text('Auto Pilot: OFF')
 
     def displaySettings(self):
         F_button_ax = plt.axes([0, 0, 1, 1])
@@ -251,7 +267,7 @@ class display:
         autoInp = InsetPosition(self.axes['B'], [0, 0.54, 0.9, 0.1]) #x,y,w,h
         A_button_ax.set_axes_locator(autoInp)
         self.autoButton = Button(A_button_ax, 'Auto Pilot: OFF')
-        #self.zoomButton.on_clicked(self.trackZ)
+        self.autoButton.on_clicked(self.autoF)
 
     def displayValues(self):
         #Velocity
@@ -298,7 +314,7 @@ class display:
     
     def updateCycle(self,f):
         if not self.pause:
-            self.boat.update()
+            self.boat.update(self.auto)
             self.time +=1/fps
             if self.track:
                 dx = self.axes['A'].get_xlim()[1]-self.axes['A'].get_xlim()[0]
@@ -332,5 +348,6 @@ if __name__ == "__main__":
     boat.angle = Angle(1,0)
     sail.angle = Angle(1,30)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
+    Compressor(boat,"test.txt")
     render = display(lakeShoreline,boat)
     render.runAnimation()

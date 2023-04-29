@@ -57,7 +57,7 @@ class Boat:
         sI = sum([h.I for h in self.hulls]) + sum([s.I for s in self.sails])
         alfa = sMoments/sI
         #d theta = w*dt +1/2*alfa*dt^2
-        print(self.rotationalVelocity*dt*180/math.pi,(alfa*dt**2)/2*180/math.pi)
+        #print(self.rotationalVelocity*dt*180/math.pi,(alfa*dt**2)/2*180/math.pi)
         self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)#
         #self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
 

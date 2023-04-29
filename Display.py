@@ -10,7 +10,7 @@ from Map import regionPolygon, loadGrib
 from Foil import foil
 from Variables import *
 from Boat import Boat
-from Control import Controler
+from Control import Controler,printA
 from Compressor import Compressor
 #Other
 import os
@@ -33,8 +33,8 @@ class boatDisplayShell():
         self.refLat =refLat
     def initAuto(self):
         #This function needs to be ran after some other stuff
-        self.autopilot = Controler(self.boat,[self.boat.position.xcomp()+0.0001,self.boat.position.ycomp()+0.0001])
-        self.ax.plot([self.boat.position.xcomp(),self.boat.position.xcomp()+0.0001],[self.boat.position.ycomp(),self.boat.position.ycomp()+0.0001], color = 'red')
+        self.autopilot = Controler(self.boat,[self.boat.position.xcomp()+0.0002,self.boat.position.ycomp()+0.0002])
+        self.ax.plot([self.boat.position.xcomp(),self.boat.position.xcomp()+0.0002],[self.boat.position.ycomp(),self.boat.position.ycomp()+0.0002], color = 'red')
     def createBoat(self):
         self.hullDisplay = []
         self.sailDisplay = []
@@ -83,7 +83,7 @@ class boatDisplayShell():
         #Boat velocity
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
 
-    def update(self, auto):
+    def update(self, auto,showForces):
         self.boat.update(1/fps)#*4
         if auto:
             self.autopilot.update(1/fps)
@@ -98,13 +98,18 @@ class boatDisplayShell():
             r = transforms.Affine2D().rotate_deg_around(cx,cy,(self.boat.angle+self.boat.hulls[i].angle).calc()) # NOTE: This is not a mistake
             sum = r + self.ax.transData
 
-
-            #lift
-            self.forceDisplay[2*i].set_xdata([cx,cx+meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
-            self.forceDisplay[2*i].set_ydata([cy,cy+meter2degreeY(self.boat.hullLiftForce(i).ycomp())])
-            #drag
-            self.forceDisplay[2*i+1].set_xdata([cx,cx+meter2degreeX(self.boat.hullDragForce(i).xcomp(),self.refLat)])
-            self.forceDisplay[2*i+1].set_ydata([cy,cy+meter2degreeY(self.boat.hullDragForce(i).ycomp())])
+            if showForces:
+                self.forceDisplay[2*i].set_linestyle("solid")
+                self.forceDisplay[2*i+1].set_linestyle("solid")
+                #lift
+                self.forceDisplay[2*i].set_xdata([cx,cx+meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
+                self.forceDisplay[2*i].set_ydata([cy,cy+meter2degreeY(self.boat.hullLiftForce(i).ycomp())])
+                #drag
+                self.forceDisplay[2*i+1].set_xdata([cx,cx+meter2degreeX(self.boat.hullDragForce(i).xcomp(),self.refLat)])
+                self.forceDisplay[2*i+1].set_ydata([cy,cy+meter2degreeY(self.boat.hullDragForce(i).ycomp())])
+            else:
+                self.forceDisplay[2*i].set_linestyle("None")
+                self.forceDisplay[2*i+1].set_linestyle("None")
             #tranforms
             verts = [(meter2degreeX(p[0]*self.boat.hulls[i].size,self.refLat)+cx,meter2degreeY(p[1]*self.boat.hulls[i].size)+cy) for p in self.boat.hulls[i].polygon]
             #verts = [(meter2degreeX(p[0]*self.boat.hulls[i].size+ self.boat.hulls[i].position.xcomp(),self.refLat)+self.boat.position.xcomp(),meter2degreeY(p[1]*self.boat.hulls[i].size+self.boat.hulls[i].position.ycomp())+self.boat.position.ycomp()) for p in self.boat.hulls[i].polygon]
@@ -123,13 +128,18 @@ class boatDisplayShell():
             CEy = y1+meter2degreeY(math.sin((180+self.boat.angle.calc()+self.boat.sails[i].angle.calc())*math.pi/180)*self.boat.sails[i].size/2)
             # CEx = x1
             # CEy = y1
-            #lift
-            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailLiftForce(i).xcomp(),self.refLat)])
-            self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailLiftForce(i).ycomp())])
-            #drag
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailDragForce(i).xcomp(),self.refLat)])
-            self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailDragForce(i).ycomp())])
-            
+            if showForces:
+                #lift
+                self.forceDisplay[2*i+len(self.hullDisplay)*2].set_linestyle("solid")
+                self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_linestyle("solid")
+                self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailLiftForce(i).xcomp(),self.refLat)])
+                self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailLiftForce(i).ycomp())])
+                #drag
+                self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailDragForce(i).xcomp(),self.refLat)])
+                self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailDragForce(i).ycomp())])
+            else:
+                self.forceDisplay[2*i+len(self.hullDisplay)*2].set_linestyle("None")
+                self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_linestyle("None")
             # self.forceDisplay[2*i+len(self.hullDisplay)*2].set_transform(sum)
             # self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_transform(sum)
 
@@ -153,10 +163,11 @@ class boatDisplayShell():
 
 class display:
     def __init__(self,location,boat):
-        self.f, self.axes = plt.subplot_mosaic('AAABDE;AAACCE', figsize=(12, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
+        self.f, self.axes = plt.subplot_mosaic('AAABD;AAACC', figsize=(12, 5)) #,per_subplot_kw={"B": {"projection": "polar"},},
         self.pause = False
         self.track = False
         self.auto = False
+        self.forceShow = True
         self.time = 0
 
         self.boat = boatDisplayShell(boat,self.axes['A'],boat.position.ycomp())
@@ -244,12 +255,18 @@ class display:
             self.autoButton.label.set_text('Auto Pilot: ON')
         else:
             self.autoButton.label.set_text('Auto Pilot: OFF')
-
+    def forceS(self,t):
+        self.forceShow = not self.forceShow
+        if self.forceShow:
+            self.forceButton.label.set_text('Hide Forces')
+        else:
+            self.forceButton.label.set_text('Show Forces')
     def displaySettings(self):
         F_button_ax = plt.axes([0, 0, 1, 1])
         forcesInp = InsetPosition(self.axes['B'], [0, 0.9, 0.9, 0.1]) #x,y,w,h
         F_button_ax.set_axes_locator(forcesInp)
         self.forceButton = Button(F_button_ax, 'Hide Forces')
+        self.forceButton.on_clicked(self.forceS)
 
         P_button_ax = plt.axes([0, 0, 1, 1])
         pauseInp = InsetPosition(self.axes['B'], [0, 0.78, 0.9, 0.1]) #x,y,w,h
@@ -314,8 +331,10 @@ class display:
     
     def updateCycle(self,f):
         if not self.pause:
-            self.boat.update(self.auto)
+            self.boat.update(self.auto,self.forceShow)
             self.time +=1/fps
+            self.bRot.set_val(printA(self.boat.boat.hulls[-1].angle.calc()))
+            self.sRot.set_val(printA(self.boat.boat.sails[0].angle.calc()))
             if self.track:
                 dx = self.axes['A'].get_xlim()[1]-self.axes['A'].get_xlim()[0]
                 dy = self.axes['A'].get_ylim()[1]-self.axes['A'].get_ylim()[0]

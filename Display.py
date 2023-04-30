@@ -11,7 +11,7 @@ from Foil import foil
 from Variables import *
 from Boat import Boat
 from Control import Controler,printA
-from Compressor import Compressor
+from Compressor import *
 #Other
 import os
 import math
@@ -253,6 +253,7 @@ class display:
         self.auto = not self.auto
         if self.auto:
             self.autoButton.label.set_text('Auto Pilot: ON')
+            self.boat.autopilot.setTarget(self.boat.boat.angle)
         else:
             self.autoButton.label.set_text('Auto Pilot: OFF')
     def forceS(self,t):
@@ -367,6 +368,6 @@ if __name__ == "__main__":
     boat.angle = Angle(1,0)
     sail.angle = Angle(1,30)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
-    Compressor(boat,"test.txt")
+    generatePolars(boat,"test.txt")
     render = display(lakeShoreline,boat)
     render.runAnimation()

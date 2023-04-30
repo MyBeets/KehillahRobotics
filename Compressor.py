@@ -2,8 +2,36 @@ from Foil import foil
 from Variables import *
 # from Boat import Boat
 import copy
+import math
 def roundNum(x):
     return round(x*10000)/10000
+
+def generatePolars(boat,filename):
+    boat = copy.deepcopy(boat)
+    boat.rotationalVelocity = 0
+    for aoa in range(0,-180,-1):
+        #Set wind
+        boat.wind = Vector(Angle(1,180),1)
+        #Boat going in a direction
+        boat.angle = Angle(1,aoa)
+        boat.linearVelocity = Vector(Angle(1,aoa),1)
+
+        #We then set optimal sail configuration
+        boat.sails[0].angle = Angle(1,38)
+        boat.updateSailForcesandMoments()
+        boat.updateHullForcesandMoments()
+        F= abs((boat.forces["sails"]+boat.forces["hulls"]).xcomp())
+        #print(boat.forces["sails"])
+        print("(",math.cos(aoa*math.pi/180)*F,",",math.sin(aoa*math.pi/180)*F,")")
+        # for sAOA in range(0,90):
+        #     boat.sails[0].angle = Angle(1,sAOA)
+        #     boat.updateSailForcesandMoments()
+        #     print("(",sAOA,",",boat.forces["sails"].norm,")")
+        # break
+
+
+
+
 
 def Compressor(boat,filename):
     boat = copy.deepcopy(boat)

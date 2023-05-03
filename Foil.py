@@ -1,7 +1,7 @@
 from Variables import *
 
 class foil: # sail, foil, rudder
-    def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0),rotInertia = -1,size = 1.8):
+    def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0),rotInertia = -1,size = 1.8, winches = []):
         self.datasheet = datasheet #string file location of csv
         self.polygon = []
         self.size = size #LOA of hull in meter
@@ -10,6 +10,8 @@ class foil: # sail, foil, rudder
         self.angle = Angle(1,0)# Relative angle to parent object (all is inline with boat)
         self.position = position
         self.I = rotInertia # rotational inertia
+        self.winches = winches # winches for sails
+        self.rotationalVelocity = 0
         # liftC and dragC just contain key (direction), value (coeffeciant) pairs
         if datasheet.find("naca")!= -1:
             self.liftC = self.read(self.datasheet,"Cl")
@@ -75,6 +77,20 @@ class foil: # sail, foil, rudder
             return Vector(aparentV.angle,drag)
         #return Vector(aparentV.angle,abs(self.drag(aparentV)))
 
+    def updateRotation(self,dt,wind):
+        print("Inneficiancies, CE, and rot inertia")
+        forces = self.liftForce(wind) + self.dragForce(wind) # all this should be apparent to the sail
+        ce = 1 # 1 meter right now
+        moment = math.sin(forces.angle.calc() * math.pi/180)* ce 
+        rotInteria = 5
+        alfa = moment/rotInteria
+        self.rotationalVelocity += alfa*dt
+        for i in self.winches:
+            #...
+            # check for distances to winches and cord let out, cancel all rotation velocity if nessesary
+            pass
+        self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
+
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []
         if datasheet.find("naca")!= -1:
@@ -130,3 +146,10 @@ class foil: # sail, foil, rudder
         if a > last: 
             a =last - a%last
         return self.linearInterpolation(self.liftC,a)
+
+class Winch:
+    def __init__(self, position, length):
+        self.position = position
+        self.length = length
+    def setLength(self,length):
+        self.length = length

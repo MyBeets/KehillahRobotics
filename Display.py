@@ -208,7 +208,10 @@ class display:
         self.boat.boat.hulls[-1].angle = Angle(1,self.bRot.val)
 
     def sUpdate(self,v):
-        self.boat.boat.sails[0].angle = Angle(1,self.sRot.val)
+        if len(self.boat.boat.sails[0].winches) == 0:
+            self.boat.boat.sails[0].angle = Angle(1,self.sRot.val)
+        else:
+            self.boat.boat.sails[0].setSailRotation(Angle(1,self.sRot.val))
 
 
     def boatControls(self):

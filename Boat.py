@@ -23,15 +23,15 @@ class Boat:
     def setPos(self,pos):
         self.position = pos
     def update(self,dt=1): #t is in seconds
+        num =30
         #update forces and moments
-        self.updateSailForcesandMoments()
+        self.updateSailForcesandMoments(dt/(num+1))
         self.updateHullForcesandMoments()
         #update velocities
-        num =30
         for i in range(num):
             self.updateLinearVelocity(dt/num)
-            self.updateRotationalVelocity(dt/num)
-            self.updateSailForcesandMoments()
+            self.updateRotationalVelocity(dt/(num+1))
+            self.updateSailForcesandMoments(dt/(num+1))
             self.updateHullForcesandMoments()
 
         #update position and rotation
@@ -79,12 +79,13 @@ class Boat:
         alfa = sMoments/sI
         self.rotationalVelocity += alfa*dt
 
-    def updateSailForcesandMoments(self):
+    def updateSailForcesandMoments(self,dt):
         self.forces["sails"] = Vector(Angle(1,0),0)
         self.moments["sails"] = 0
         for idx in range(len(self.sails)):
             force = self.sailLiftForce(idx) + self.sailDragForce(idx)
             self.forces["sails"] += force
+            self.sails[idx].updateSailRotation(dt,self.sailAparentWind(idx))
             #NOTE: For sail torque things become a bit more complex
             #self.moments["sails"] += self.sails[idx].moment(force) # slightly unnecessary for a sail but could be usefull
             #print("sail",self.sails[idx].moment(force))

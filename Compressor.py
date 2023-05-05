@@ -16,7 +16,7 @@ def generateSailPolars(boat,filename):
         boat.angle = Angle(1,30)
 
         boat.sails[0].angle = Angle(1,aoa)
-        boat.updateSailForcesandMoments()
+        boat.updateSailForcesandMoments(1)
 
         F= abs(boat.forces["sails"].xcomp())
         print("(",math.cos(aoa*math.pi/180)*F,",",math.sin(aoa*math.pi/180)*F,")")

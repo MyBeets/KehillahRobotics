@@ -7,10 +7,10 @@ from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from matplotlib.widgets import Slider, Button
 from Map import regionPolygon, loadGrib
 #Boat and variables
-from Foil import foil
+from Foil import foil, Winch
 from Variables import *
 from Boat import Boat
-from Control import Controler,printA
+from Control import Controler, printA
 from Compressor import *
 #Other
 import os
@@ -40,6 +40,7 @@ class boatDisplayShell():
         self.sailDisplay = []
         self.connections = []
         self.forceDisplay = []
+        self.winches = []
         for i, h in enumerate(self.boat.hulls):
             verts = [(meter2degreeX(p[0]*h.size+ h.position.xcomp(),self.refLat)+self.boat.position.xcomp(),meter2degreeY(p[1]*h.size+h.position.ycomp())+self.boat.position.ycomp()) for p in h.polygon]
             polygon = patches.Polygon(verts, color="gray") 
@@ -78,6 +79,8 @@ class boatDisplayShell():
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'gold')[0])
             #sail drag
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'lime')[0])
+            for w in s.winches:
+                self.winches.append(self.ax.add_patch(plt.Circle((self.boat.position.xcomp()+meter2degreeX(w.position.xcomp(),self.refLat),self.boat.position.ycomp()+meter2degreeY(w.position.ycomp())),meter2degreeY(w.radius), color='r')))
         #boat net forces:
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'black')[0])
         #Boat velocity
@@ -145,6 +148,11 @@ class boatDisplayShell():
 
             s.set_xdata([x1,x2])
             s.set_ydata([y1,y2])
+            for idx, w in enumerate(self.boat.sails[i].winches):
+                pos = w.position.meter2degree(self.refLat)
+                pos.angle += self.boat.angle
+                pos += self.boat.position
+                self.winches[idx].set(center =(pos.xcomp(),pos.ycomp()))
 
         #boat net forces
         f = self.boat.forces["sails"]+self.boat.forces["hulls"]
@@ -362,7 +370,11 @@ if __name__ == "__main__":
     ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 100,size = 1.5)
     ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 100,size = 1.5)
     rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 997.77, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 100,size = 0.3)
-    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7)
+    offset = 0.45 # 15cm
+    BabordWinch = Winch(Vector(Angle(1,90),0.6) + Vector(Angle(1,180),offset), 30, 0.025) #2.5cm radius
+    TribordWinch = Winch(Vector(Angle(1,-90),0.6) + Vector(Angle(1,180),offset), 30, 0.025) #2.5cm radius
+    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
+    sail.setSailRotation(Angle(1,0))
     sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
     xpos = -122.09064

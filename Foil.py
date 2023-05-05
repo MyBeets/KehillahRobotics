@@ -77,18 +77,26 @@ class foil: # sail, foil, rudder
             return Vector(aparentV.angle,drag)
         #return Vector(aparentV.angle,abs(self.drag(aparentV)))
 
-    def updateRotation(self,dt,wind):
+    def setSailRotation(self,angle):
+        for w in self.winches:
+            sailPos = self.position + Vector(Angle(1,180)+angle, self.size)
+            w.length = w.distance(sailPos)
+
+    def updateSailRotation(self,dt,wind):
+        if len(self.winches)  == 0:
+            return
         print("Inneficiancies, CE, and rot inertia")
         forces = self.liftForce(wind) + self.dragForce(wind) # all this should be apparent to the sail
         ce = 1 # 1 meter right now
-        moment = math.sin(forces.angle.calc() * math.pi/180)* ce 
+        moment = -1*math.sin(forces.angle.calc() * math.pi/180)* ce # the -1 is due to convention and format of apparent wind
         rotInteria = 5
         alfa = moment/rotInteria
         self.rotationalVelocity += alfa*dt
-        for i in self.winches:
-            #...
+        for w in self.winches:
+            pos = self.position + Vector(self.angle+Angle(1,180),self.size)
+            if w.distance(pos) >= w.length:
+                return
             # check for distances to winches and cord let out, cancel all rotation velocity if nessesary
-            pass
         self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
 
     def read(self, datasheet, atr):
@@ -153,3 +161,5 @@ class Winch:
         self.length = length
     def setLength(self,length):
         self.length = length
+    def distance(self, pos2):
+        return math.sqrt((self.position.xcomp()+pos2.xcomp())**2 + (self.position.ycomp()+pos2.ycomp())**2)

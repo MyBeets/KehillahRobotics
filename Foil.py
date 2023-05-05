@@ -156,9 +156,10 @@ class foil: # sail, foil, rudder
         return self.linearInterpolation(self.liftC,a)
 
 class Winch:
-    def __init__(self, position, length):
+    def __init__(self, position, length, radius):
         self.position = position
         self.length = length
+        self.radius = radius
     def setLength(self,length):
         self.length = length
     def distance(self, pos2):

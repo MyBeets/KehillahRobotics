@@ -46,9 +46,9 @@ class Controler():
         coeff = 2/math.pi * math.atan((dtheta)/40 - rotV/stability)
         self.boat.hulls[-1].angle = Angle(1,-10*coeff)*rNoise
         #print(dtheta,self.target_angle,coeff,-10*coeff,self.boat.hulls[-1].angle)
-        print(Angle.norm(self.boat.globalAparentWind().angle+Angle(1,180)))
+        # print(Angle.norm(self.boat.globalAparentWind().angle+Angle(1,180)))
     
     def updateSails(self):
         #print(Angle.norm(self.boat.globalAparentWind().angle+Angle(1,180)))
         # self.boat.sails[0].angle = (self.boat.globalAparentWind().angle+Angle(1,180)-Angle(1,38))
-        self.boat.sails[0].angle = (self.boat.globalAparentWind().angle+Angle(1,180)-Angle(1,60))
+        self.boat.sails[0].setSailRotation(self.boat.globalAparentWind().angle+Angle(1,180)-Angle(1,38))

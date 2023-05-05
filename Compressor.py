@@ -74,7 +74,6 @@ def Compressor(boat,filename):
         boat.wind = Vector(Angle(1,180+aoa),1)
         for idx, s in enumerate(boat.sails):
             s.angle = Angle(1,0)
-            print(boat.wind)
             force = boat.sailLiftForce(idx) + boat.sailDragForce(idx)
             sailForces += force
 

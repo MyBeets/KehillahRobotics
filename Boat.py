@@ -57,7 +57,6 @@ class Boat:
         sI = sum([h.I for h in self.hulls]) + sum([s.I for s in self.sails])
         alfa = sMoments/sI
         #d theta = w*dt +1/2*alfa*dt^2
-        #print(self.rotationalVelocity*dt*180/math.pi,(alfa*dt**2)/2*180/math.pi)
         self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)#
         #self.angle += Angle(1,self.rotationalVelocity*dt+(sI*dt**2)/2)
 
@@ -68,7 +67,6 @@ class Boat:
         ay = (self.forces["sails"]+self.forces["hulls"]).ycomp()/self.mass
         a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*1000000)/1000000),math.sqrt(ax**2+ay**2))
         a *= dt
-        #print(a)
         self.linearVelocity += a
 
     def updateRotationalVelocity(self,dt):
@@ -88,7 +86,6 @@ class Boat:
             self.sails[idx].updateSailRotation(dt,self.sailAparentWind(idx))
             #NOTE: For sail torque things become a bit more complex
             #self.moments["sails"] += self.sails[idx].moment(force) # slightly unnecessary for a sail but could be usefull
-            #print("sail",self.sails[idx].moment(force))
 
     def updateHullForcesandMoments(self):
         self.forces["hulls"] = Vector(Angle(1,0),0)
@@ -97,8 +94,7 @@ class Boat:
             force = self.hullLiftForce(idx) + self.hullDragForce(idx)
             self.forces["hulls"] += force
             self.moments["hulls"] += self.hulls[idx].moment(force)
-            #print(self.hullLiftForce(idx))
-            #print(idx,self.hulls[idx].moment(force))
+
 
     def sailDragForce(self,idx=0):
         aparentForce = self.sails[idx].dragForce(self.sailAparentWind(idx))
@@ -117,7 +113,6 @@ class Boat:
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce
     def hullLiftForce(self,idx=0):
-        #print(self.hullAparentWind(idx),idx)
         aparentForce = self.hulls[idx].liftForce(self.hullAparentWind(idx))
         trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle,aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)

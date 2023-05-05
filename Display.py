@@ -219,7 +219,9 @@ class display:
         if len(self.boat.boat.sails[0].winches) == 0:
             self.boat.boat.sails[0].angle = Angle(1,self.sRot.val)
         else:
-            self.boat.boat.sails[0].setSailRotation(Angle(1,self.sRot.val))
+            if self.sRot.val != self.boat.boat.sails[0].winches[0].rot.calc():
+                print("update")
+                self.boat.boat.sails[0].setSailRotation(Angle(1,self.sRot.val))
 
 
     def boatControls(self):
@@ -346,7 +348,12 @@ class display:
             self.boat.update(self.auto,self.forceShow)
             self.time +=1/fps
             self.bRot.set_val(printA(self.boat.boat.hulls[-1].angle.calc()))
-            self.sRot.set_val(printA(self.boat.boat.sails[0].angle.calc()))
+
+            if len(self.boat.boat.sails[0].winches) == 0:
+                self.sRot.set_val(printA(self.boat.boat.sails[0].angle.calc()))
+            else:
+                self.sRot.set_val(printA(self.boat.boat.sails[0].winches[0].rot.calc()))
+            
             if self.track:
                 dx = self.axes['A'].get_xlim()[1]-self.axes['A'].get_xlim()[0]
                 dy = self.axes['A'].get_ylim()[1]-self.axes['A'].get_ylim()[0]

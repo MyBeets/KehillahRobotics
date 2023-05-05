@@ -81,11 +81,16 @@ class foil: # sail, foil, rudder
         for w in self.winches:
             sailPos = self.position + Vector(Angle(1,180)+angle, self.size)
             w.length = w.distance(sailPos)
+            w.rot = angle
+    
 
+    pICERI = False
     def updateSailRotation(self,dt,wind):
-        if len(self.winches)  == 0:
+        if len(self.winches) == 0:
             return
-        print("Inneficiancies, CE, and rot inertia")
+        if not self.pICERI:
+            print("Inneficiancies, CE, and rot inertia")
+            self.pICERI = True
         forces = self.liftForce(wind) + self.dragForce(wind) # all this should be apparent to the sail
         ce = 1 # 1 meter right now
         moment = -1*math.sin(forces.angle.calc() * math.pi/180)* ce # the -1 is due to convention and format of apparent wind
@@ -94,8 +99,10 @@ class foil: # sail, foil, rudder
         self.rotationalVelocity += alfa*dt
         for w in self.winches:
             pos = self.position + Vector(self.angle+Angle(1,180),self.size)
+            print(w.distance(pos),w.length)
             if w.distance(pos) >= w.length:
-                return
+                self.angle = w.rot
+                self.rotationalVelocity = 0
             # check for distances to winches and cord let out, cancel all rotation velocity if nessesary
         self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
 
@@ -160,6 +167,7 @@ class Winch:
         self.position = position
         self.length = length
         self.radius = radius
+        self.rot = Angle(1,0)# this pretty much an internal variable for display
     def setLength(self,length):
         self.length = length
     def distance(self, pos2):

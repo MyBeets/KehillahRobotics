@@ -78,9 +78,11 @@ class foil: # sail, foil, rudder
         #return Vector(aparentV.angle,abs(self.drag(aparentV)))
 
     def setSailRotation(self,angle):
+        sailPos = self.position + Vector(Angle(1,180)+angle+self.position.angle, self.size)
+        d = [w.distance(sailPos) for w in self.winches] 
+        # the reason we must obtain the max is the the shorter cable will be impossibly short until the boom is in position
         for w in self.winches:
-            sailPos = self.position + Vector(Angle(1,180)+angle, self.size)
-            w.length = w.distance(sailPos)
+            w.length = max(d)
             w.rot = angle
     
 
@@ -94,17 +96,17 @@ class foil: # sail, foil, rudder
         forces = self.liftForce(wind) + self.dragForce(wind) # all this should be apparent to the sail
         ce = 1 # 1 meter right now
         moment = -1*math.sin(forces.angle.calc() * math.pi/180)* ce # the -1 is due to convention and format of apparent wind
-        rotInteria = 5
+        rotInteria = 1
         alfa = moment/rotInteria
         self.rotationalVelocity += alfa*dt
+        pos = self.position + Vector(self.angle+self.position.angle+Angle(1,180),self.size)
         for w in self.winches:
-            pos = self.position + Vector(self.angle+Angle(1,180),self.size)
-            print(w.distance(pos),w.length)
             if w.distance(pos) >= w.length:
                 self.angle = w.rot
                 self.rotationalVelocity = 0
             # check for distances to winches and cord let out, cancel all rotation velocity if nessesary
         self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
+        self.rotationalVelocity /=1.001 # friction
 
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []

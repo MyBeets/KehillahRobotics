@@ -150,7 +150,7 @@ class boatDisplayShell():
             s.set_ydata([y1,y2])
             for idx, w in enumerate(self.boat.sails[i].winches):
                 pos = w.position.meter2degree(self.refLat)
-                pos.angle += self.boat.angle
+                pos.angle += self.boat.angle - Angle(1,90)
                 pos += self.boat.position
                 self.winches[idx].set(center =(pos.xcomp(),pos.ycomp()))
 
@@ -378,17 +378,17 @@ if __name__ == "__main__":
     ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 100,size = 1.5)
     rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 997.77, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 100,size = 0.3)
     offset = 0.45 # 15cm
-    BabordWinch = Winch(Vector(Angle(1,90),0.6) + Vector(Angle(1,180),offset), 30, 0.025) #2.5cm radius
-    TribordWinch = Winch(Vector(Angle(1,-90),0.6) + Vector(Angle(1,180),offset), 30, 0.025) #2.5cm radius
+    BabordWinch = Winch(Vector(Angle(1,180),0.6) + Vector(Angle(1,270),offset), 30, 0.025) #2.5cm radius
+    TribordWinch = Winch(Vector(Angle(1,0),0.6) + Vector(Angle(1,270),offset), 30, 0.025) #2.5cm radius
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
     sail.setSailRotation(Angle(1,0))
-    sail.angle += Angle(1,10)
+    # sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
     xpos = -122.09064
     ypos = 37.431749
     boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,mass =15,refLat=ypos)
     boat.angle = Angle(1,0)
-    sail.angle = Angle(1,30)
+    sail.angle = Angle(1,0)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
     generatePolars(boat,"test.txt")
     render = display(lakeShoreline,boat)

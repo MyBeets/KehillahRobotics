@@ -169,8 +169,9 @@ class Vector():
         return Vector(Angle(1, math.atan2(dy,dx)*180/math.pi),math.sqrt(dx*dx+dy*dy))
         #return Vector(Angle(1, round(math.atan2(dy,dx)*180/math.pi*10000000)/10000000),round(math.sqrt(dx*dx+dy*dy)*10000000)/10000000)
     def __mul__(self,x):
-        if not type(x) == int and not type(x) == float:
-            raise Exception("Vector class currently doesn't support non scalar multiplication")
+        if type(x) == Vector:
+            return self.norm * x.norm * math.cos((x.angle.calc()-self.angle.calc())*math.pi/180)
+            #raise Exception("Vector class currently doesn't support non scalar multiplication")
         else:
             return Vector(self.angle,self.norm*x)
     def __sub__(self,x):

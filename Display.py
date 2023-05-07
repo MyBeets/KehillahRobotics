@@ -90,6 +90,7 @@ class boatDisplayShell():
         self.boat.update(1/fps)#*4
         if auto:
             self.autopilot.update(1/fps)
+        forceScale = 0.01
         #hulls
         for i, h in enumerate(self.hullDisplay):
             hull = copy.deepcopy(self.boat.hulls[i])
@@ -105,11 +106,11 @@ class boatDisplayShell():
                 self.forceDisplay[2*i].set_linestyle("solid")
                 self.forceDisplay[2*i+1].set_linestyle("solid")
                 #lift
-                self.forceDisplay[2*i].set_xdata([cx,cx+meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
-                self.forceDisplay[2*i].set_ydata([cy,cy+meter2degreeY(self.boat.hullLiftForce(i).ycomp())])
+                self.forceDisplay[2*i].set_xdata([cx,cx+forceScale*meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
+                self.forceDisplay[2*i].set_ydata([cy,cy+forceScale*meter2degreeY(self.boat.hullLiftForce(i).ycomp())])
                 #drag
-                self.forceDisplay[2*i+1].set_xdata([cx,cx+meter2degreeX(self.boat.hullDragForce(i).xcomp(),self.refLat)])
-                self.forceDisplay[2*i+1].set_ydata([cy,cy+meter2degreeY(self.boat.hullDragForce(i).ycomp())])
+                self.forceDisplay[2*i+1].set_xdata([cx,cx+forceScale*meter2degreeX(self.boat.hullDragForce(i).xcomp(),self.refLat)])
+                self.forceDisplay[2*i+1].set_ydata([cy,cy+forceScale*meter2degreeY(self.boat.hullDragForce(i).ycomp())])
             else:
                 self.forceDisplay[2*i].set_linestyle("None")
                 self.forceDisplay[2*i+1].set_linestyle("None")
@@ -135,11 +136,11 @@ class boatDisplayShell():
                 #lift
                 self.forceDisplay[2*i+len(self.hullDisplay)*2].set_linestyle("solid")
                 self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_linestyle("solid")
-                self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailLiftForce(i).xcomp(),self.refLat)])
-                self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailLiftForce(i).ycomp())])
+                self.forceDisplay[2*i+len(self.hullDisplay)*2].set_xdata([CEx,CEx+forceScale*meter2degreeX(self.boat.sailLiftForce(i).xcomp(),self.refLat)])
+                self.forceDisplay[2*i+len(self.hullDisplay)*2].set_ydata([CEy,CEy+forceScale*meter2degreeY(self.boat.sailLiftForce(i).ycomp())])
                 #drag
-                self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+meter2degreeX(self.boat.sailDragForce(i).xcomp(),self.refLat)])
-                self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+meter2degreeY(self.boat.sailDragForce(i).ycomp())])
+                self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_xdata([CEx,CEx+forceScale*meter2degreeX(self.boat.sailDragForce(i).xcomp(),self.refLat)])
+                self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_ydata([CEy,CEy+forceScale*meter2degreeY(self.boat.sailDragForce(i).ycomp())])
             else:
                 self.forceDisplay[2*i+len(self.hullDisplay)*2].set_linestyle("None")
                 self.forceDisplay[2*i+1+len(self.hullDisplay)*2].set_linestyle("None")
@@ -156,11 +157,11 @@ class boatDisplayShell():
 
         #boat net forces
         f = self.boat.forces["sails"]+self.boat.forces["hulls"]
-        self.forceDisplay[-2].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX(f.xcomp(),self.refLat)])
-        self.forceDisplay[-2].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY(f.ycomp())])
+        self.forceDisplay[-2].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+forceScale*meter2degreeX(f.xcomp(),self.refLat)])
+        self.forceDisplay[-2].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+forceScale*meter2degreeY(f.ycomp())])
         #boat velocity
-        self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+meter2degreeX(self.boat.linearVelocity.xcomp(),self.refLat)])
-        self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+meter2degreeY(self.boat.linearVelocity.ycomp())])
+        self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+forceScale*meter2degreeX(self.boat.linearVelocity.xcomp(),self.refLat)])
+        self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+forceScale*meter2degreeY(self.boat.linearVelocity.ycomp())])
 
         # #connections
         # for c in self.connections:
@@ -220,7 +221,6 @@ class display:
             self.boat.boat.sails[0].angle = Angle(1,self.sRot.val)
         else:
             if self.sRot.val != self.boat.boat.sails[0].winches[0].rot.calc():
-                print("update")
                 self.boat.boat.sails[0].setSailRotation(Angle(1,self.sRot.val))
 
 

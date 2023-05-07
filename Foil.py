@@ -96,13 +96,13 @@ class foil: # sail, foil, rudder
         forces = self.liftForce(wind) + self.dragForce(wind) # all this should be apparent to the sail
         ce = 1 # 1 meter right now
         moment = -1*math.sin(forces.angle.calc() * math.pi/180)* ce # the -1 is due to convention and format of apparent wind
-        rotInteria = 1
+        rotInteria = 0.5
         alfa = moment/rotInteria
         self.rotationalVelocity += alfa*dt
         pos = self.position + Vector(self.angle+self.position.angle+Angle(1,180),self.size)
         for w in self.winches:
             if w.distance(pos) >= w.length:
-                self.angle = w.rot
+                # self.angle = w.rot
                 self.rotationalVelocity = 0
             # check for distances to winches and cord let out, cancel all rotation velocity if nessesary
         self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)

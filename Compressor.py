@@ -8,29 +8,41 @@ def roundNum(x):
 
 def generateSailPolars(boat,filename):
     boat = copy.deepcopy(boat)
-    boat.rotationalVelocity = 0
     data = {}
     for baoa in range(-90,90):
-    #if True:
-        #baoa = 0
+    # if True:
+    #     baoa = -70
         mAngle = 0
         mValue = 0
-        for aoa in range(0,90-baoa):
+        boat.angle = Angle(1,baoa)
+        finalA =0
+        if baoa > 0:
+            finalA = 90-baoa
+        else:
+            finalA = 90-abs(baoa)
+        for aoa in range(0,90):
+            #clean slate
+            boat.resetValues()
+
             #Set wind
             boat.wind = Vector(Angle(1,270),1)
-            #Boat going in a direction
-            boat.angle = Angle(1,baoa)
-            boat.sails[0].angle = Angle(1,aoa)
-
-            # boat.sails[0].angle = Angle(1,aoa)
-            #F = boat.sails[0].liftForce(boat.sailAparentWind(0)).xcomp()
-            boat.updateSailForcesandMoments(1)
-            boat.updateHullForcesandMoments()
-            F = boat.forces["sails"]#+boat.forces["hulls"]
-            #Now we compute how much it contributes to thrust by a simple dot product
-            F = abs(F * Vector(boat.angle,F.norm))*math.cos(aoa*math.pi/180)
-            #print(F)
-            # F= abs(boat.forces["sails"].norm)
+            boat.sails[0].setSailRotation(Angle(1,aoa))
+            for s in range(1):
+                for ms in range(100): # this must be kept high as to avoid over amplifying innacuracy loops 
+                    # boat.sails[0].angle = Angle(1,31)
+                    #We then set optimal sail configuration
+                    boat.sails[0].angle = Angle(1,aoa)
+                    num =10
+                    time = 0.01
+                    #update velocities
+                    for i in range(num):
+                        boat.updateSailForcesandMoments(time/num)
+                        boat.updateHullForcesandMoments()
+                        boat.updateLinearVelocity(time/num)
+                        boat.updateRotationalVelocity(time/num)
+                    boat.rotationalVelocity = 0
+            F = boat.forces["sails"]#.norm #+boat.forces["hulls"]
+            F = abs(F * Vector(boat.angle,F.norm))#*math.cos(aoa*math.pi/180)
             if F > mValue:
                 mValue = F
                 mAngle = aoa
@@ -39,15 +51,17 @@ def generateSailPolars(boat,filename):
         data[str(baoa)]=mAngle
         print("(",baoa,",",mAngle,")")
         #print("(",math.cos(baoa*math.pi/180)*mAngle,",",math.sin(baoa*math.pi/180)*mAngle,")")
-    print(data)
+    #print(data)
 
 
 def generatePolars(boat,filename):
     generateSailPolars(boat,filename)
     return
     boat = copy.deepcopy(boat)
-    boat.rotationalVelocity = 0
+
     for aoa in range(-90,90):
+        #clean slate
+        boat.resetValues()
         #Set wind
         boat.wind = Vector(Angle(1,180),1)
         #Boat going in a direction
@@ -59,6 +73,7 @@ def generatePolars(boat,filename):
                 # boat.sails[0].angle = Angle(1,38)
                 #We then set optimal sail configuration
                 boat.sails[0].setSailRotation(boat.globalAparentWind().angle+Angle(1,180)-Angle(1,38))
+                boat.sails[0].angle = Angle(1,boat.globalAparentWind().angle+Angle(1,180)-Angle(1,38))
                 num =2
                 time = 0.01
                 #update velocities
@@ -68,6 +83,7 @@ def generatePolars(boat,filename):
                     boat.updateSailForcesandMoments(time/num)
                     boat.updateHullForcesandMoments()
                 # boat.updatePosition(time)
+                boat.rotationalVelocity = 0
                 # F= abs((boat.forces["sails"]+boat.forces["hulls"]).xcomp())4
         F= abs((boat.forces["sails"]).xcomp())
         # print("(",s,",",F,")")

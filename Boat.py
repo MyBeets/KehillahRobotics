@@ -22,6 +22,11 @@ class Boat:
 
     def setPos(self,pos):
         self.position = pos
+    def resetValues(self):
+        self.rotationalVelocity = 0
+        self.linearVelocity = Vector(Angle(1,0),0)
+        self.forces = {"sails":Vector(Angle(1,0),0), "hulls":Vector(Angle(1,0),0)}
+        self.moments = {"sails":0, "hulls":0}
     def update(self,dt=1): #t is in seconds
         num =30
         #update forces and moments

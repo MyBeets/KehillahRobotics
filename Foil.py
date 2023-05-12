@@ -18,12 +18,13 @@ class foil: # sail, foil, rudder
             self.dragC = self.read(self.datasheet,"Cd")
             self.polygon = self.readPoly(datasheet)
         elif datasheet.find("mainSailCoeffs") != -1:
-            self.liftC = self.read(self.datasheet,"clyc-CLhi")
-            self.dragC = self.read(self.datasheet,"cdyc-CDhi")
+            self.liftC = self.read(self.datasheet,"clyc-CLlow")
+            self.dragC = self.read(self.datasheet,"cdyc-CDlow")
         else:
             self.liftC = self.read(self.datasheet,"CL")
             self.dragC = self.read(self.datasheet,"CD")
-            self.polygon = self.readPoly(datasheet)
+            if datasheet.find("SailCoeffs") == -1:
+                self.polygon = self.readPoly(datasheet)
         
     def readPoly(self, datasheet):
         datasheet = datasheet.replace("cvs","dat").replace("csv","dat")
@@ -101,7 +102,7 @@ class foil: # sail, foil, rudder
         self.rotationalVelocity += alfa*dt
         pos = self.position + Vector(self.angle+self.position.angle+Angle(1,180),self.size)
         for w in self.winches:
-            if w.distance(pos) >= w.length:
+            if w.distance(pos) >= w.length or self.angle.calc() > w.rot.calc():
                 self.angle = w.rot
                 self.rotationalVelocity = 0
             # check for distances to winches and cord let out, cancel all rotation velocity if nessesary

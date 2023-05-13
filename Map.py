@@ -82,7 +82,7 @@ def loadGrib(file):
     #print(grib.select(name="V V-component of wind m s**-1"))
 
 
-loadGrib("2023030700.15.grb")
+#loadGrib("2023030700.15.grb")
 #print(datetime.now(timezone.utc).strftime('%H'))
 #downloadGrib("test")
 #downloadGrib(datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S'))

@@ -106,11 +106,11 @@ class boatDisplayShell():
                 self.forceDisplay[2*i].set_linestyle("solid")
                 self.forceDisplay[2*i+1].set_linestyle("solid")
                 #lift
-                self.forceDisplay[2*i].set_xdata([cx,cx+forceScale*meter2degreeX(self.boat.hullLiftForce(i).xcomp(),self.refLat)])
-                self.forceDisplay[2*i].set_ydata([cy,cy+forceScale*meter2degreeY(self.boat.hullLiftForce(i).ycomp())])
+                self.forceDisplay[2*i].set_xdata([cx,cx+forceScale*meter2degreeX(self.boat.hullLiftForceandMoment(i)[0].xcomp(),self.refLat)])
+                self.forceDisplay[2*i].set_ydata([cy,cy+forceScale*meter2degreeY(self.boat.hullLiftForceandMoment(i)[0].ycomp())])
                 #drag
-                self.forceDisplay[2*i+1].set_xdata([cx,cx+forceScale*meter2degreeX(self.boat.hullDragForce(i).xcomp(),self.refLat)])
-                self.forceDisplay[2*i+1].set_ydata([cy,cy+forceScale*meter2degreeY(self.boat.hullDragForce(i).ycomp())])
+                self.forceDisplay[2*i+1].set_xdata([cx,cx+forceScale*meter2degreeX(self.boat.hullDragForceandMoment(i)[0].xcomp(),self.refLat)])
+                self.forceDisplay[2*i+1].set_ydata([cy,cy+forceScale*meter2degreeY(self.boat.hullDragForceandMoment(i)[0].ycomp())])
             else:
                 self.forceDisplay[2*i].set_linestyle("None")
                 self.forceDisplay[2*i+1].set_linestyle("None")
@@ -308,8 +308,8 @@ class display:
         self.text[2].set_text("Hull Apparent V:" + rm_ansi(str(self.boat.boat.hullAparentWind(1))).replace("Vector",""))
         self.text[3].set_text("Sail Apparent V:" + rm_ansi(str(self.boat.boat.sailAparentWind(0))).replace("Vector",""))
         #Hull Forces
-        self.text[4].set_text("Hull lift F:" + rm_ansi(str(self.boat.boat.hullLiftForce(1))))
-        self.text[5].set_text("Hull Drag F:" + rm_ansi(str(self.boat.boat.hullDragForce(1))))
+        self.text[4].set_text("Hull lift F:" + rm_ansi(str(self.boat.boat.hullLiftForceandMoment(1)[0])))
+        self.text[5].set_text("Hull Drag F:" + rm_ansi(str(self.boat.boat.hullDragForceandMoment(1)[0])))
         #Sail Forces
         self.text[6].set_text("Sail lift F:" + rm_ansi(str(self.boat.boat.sailLiftForce(0))))
         self.text[7].set_text("Sail Drag F:" + rm_ansi(str(self.boat.boat.sailDragForce(0))))
@@ -381,6 +381,7 @@ if __name__ == "__main__":
     BabordWinch = Winch(Vector(Angle(1,180),0.6) + Vector(Angle(1,270),offset), 30, 0.025) #2.5cm radius
     TribordWinch = Winch(Vector(Angle(1,0),0.6) + Vector(Angle(1,270),offset), 30, 0.025) #2.5cm radius
     sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
+    #sail = foil(data_dir+"\\data\\combinedSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
     sail.setSailRotation(Angle(1,0))
     # sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn

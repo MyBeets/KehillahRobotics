@@ -96,9 +96,10 @@ class Boat:
         self.forces["hulls"] = Vector(Angle(1,0),0)
         self.moments["hulls"] = 0
         for idx in range(len(self.hulls)):
-            force = self.hullLiftForce(idx) + self.hullDragForce(idx)
-            self.forces["hulls"] += force
-            self.moments["hulls"] += self.hulls[idx].moment(force)
+            liftForce, liftMoment = self.hullLiftForceandMoment(idx)
+            dragForce, dragMoment = self.hullDragForceandMoment(idx)
+            self.forces["hulls"] += liftForce + dragForce
+            self.moments["hulls"] += liftMoment + dragMoment
 
 
     def sailDragForce(self,idx=0):
@@ -112,16 +113,18 @@ class Boat:
         trueForce.angle = Angle.norm(trueForce.angle)
         return trueForce
 
-    def hullDragForce(self,idx=0):
+    def hullDragForceandMoment(self,idx=0):
         aparentForce = self.hulls[idx].dragForce(self.hullAparentWind(idx))
+        moment = self.hulls[idx].moment(aparentForce)
         trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle,aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
-        return trueForce
-    def hullLiftForce(self,idx=0):
+        return trueForce, moment
+    def hullLiftForceandMoment(self,idx=0):
         aparentForce = self.hulls[idx].liftForce(self.hullAparentWind(idx))
+        moment = self.hulls[idx].moment(aparentForce)
         trueForce = Vector(aparentForce.angle + self.angle + self.hulls[idx].angle,aparentForce.norm)
         trueForce.angle = Angle.norm(trueForce.angle)
-        return trueForce
+        return trueForce, moment
 
     def globalAparentWind(self):
         # returns global aparent wind on boat

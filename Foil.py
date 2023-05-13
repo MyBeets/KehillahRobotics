@@ -18,8 +18,8 @@ class foil: # sail, foil, rudder
             self.dragC = self.read(self.datasheet,"Cd")
             self.polygon = self.readPoly(datasheet)
         elif datasheet.find("mainSailCoeffs") != -1:
-            self.liftC = self.read(self.datasheet,"clyc-CLlow")
-            self.dragC = self.read(self.datasheet,"cdyc-CDlow")
+            self.liftC = self.read(self.datasheet,"clnc-CLlow")
+            self.dragC = self.read(self.datasheet,"cdnc-CDlow")
         else:
             self.liftC = self.read(self.datasheet,"CL")
             self.dragC = self.read(self.datasheet,"CD")
@@ -37,10 +37,12 @@ class foil: # sail, foil, rudder
         return poly
 
     def moment(self,force):
-        if math.cos(self.position.angle.calc()*math.pi/180)*self.position.norm >= 0: # simple convention on rotation 
-            return -self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
-        else:
-            return self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
+        #force here is apparent force
+        return -math.sin(force.angle.calc()*math.pi/180)*force.norm*self.position.norm
+        # if math.cos(self.position.angle.calc()*math.pi/180)*self.position.norm >= 0: # simple convention on rotation 
+        #     return -self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
+        # else:
+        #     return self.position.norm*force.norm*math.sin((force.angle-(self.position.angle)).calc()*math.pi/180)
 
     def drag(self, aparentV):
         # the + Angle(1,180) is to flip the wind from direction pointing to direction of arrival

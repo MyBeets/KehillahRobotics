@@ -3,6 +3,9 @@ from Variables import *
 # from Boat import Boat
 import copy
 import math
+from Control import *
+from tqdm import tqdm
+
 def roundNum(x):
     return round(x*10000)/10000
 def printA(x):
@@ -10,97 +13,44 @@ def printA(x):
     if x > 180:
         x = -180 + x-180
     return x
-def generateSailPolars(boat,filename):
-    return
-    boat = copy.deepcopy(boat)
-    data = {}
-    sample = [-90,-75,-45,0,45,75,90]
-    sample = [75]
-    for baoa in range(-90,90):
-    #for baoa in sample:
-    # if True:
-    #     baoa = -45
-        mAngle = 0
-        mValue = 0
-
-        finalA =90
-        
-        if printA(baoa) >= 0: # slight effeciancies
-            finalA = 90-baoa
-        # else:
-        #     finalA = abs(printA(baoa))
-        for aoa in range(0,finalA):
-            #clean slate
-            boat.resetValues()
-            boat.angle = Angle(1,baoa)
-
-            #Set wind
-            boat.wind = Vector(Angle(1,270),1)
-            boat.sails[0].setSailRotation(Angle(1,aoa))
-            # for s in range(3):
-            #     for ms in range(100): # this must be kept high as to avoid over amplifying innacuracy loops 
-            #         num =10
-            #         time = 0.01
-            #         #update velocities
-            #         for i in range(num):
-            #             boat.sails[0].angle = Angle(1,aoa)
-            #             boat.updateSailForcesandMoments(time/num)
-            #             boat.updateHullForcesandMoments()
-            #             boat.updateLinearVelocity(time/num)
-            #             boat.updateRotationalVelocity(time/num)
-            #         boat.rotationalVelocity = 0
-            boat.sails[0].angle = Angle(1,aoa)
-            boat.updateSailForcesandMoments(1)
-            boat.updateLinearVelocity(1)
-            F = boat.linearVelocity#boat.forces["sails"]#.norm #+boat.forces["hulls"]
-            F = abs(F * Vector(boat.angle,F.norm))#*math.cos(aoa*math.pi/180)
-            if F > mValue:
-                mValue = F
-                mAngle = aoa
-            #print("(",boat.forces["sails"].xcomp(),",",boat.forces["sails"].ycomp(),")")
-            #print(boat.sails[0].angle,boat.forces["sails"])
-            #print(F,aoa)
-            #print("(",math.cos(aoa*math.pi/180)*F,",",math.sin(aoa*math.pi/180)*F,")")
-        data[str(baoa)]=mAngle
-        print("(",baoa,",",mAngle,")")
-        #print("(",math.cos(baoa*math.pi/180)*mAngle,",",math.sin(baoa*math.pi/180)*mAngle,")")
-    print(data)
-
 
 def generatePolars(boat,filename):
-    generateSailPolars(boat,filename)
-    return
     boat = copy.deepcopy(boat)
+    cont = Controler(boat,[])
+    # speeds = [0.3,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5,5.5,6,6.5,7] #.58 kt to 13.6kt
+    speeds = [1] #.58 kt to 13.6kt
+    output = open(filename + ".pol","w")
+    output.write("twa/tws;"+str(speeds).replace(", ", ";")[1:-1] + "\n")
+    for aoa in range(-90,90,15):
+        comp = []
+        for s in speeds:
+            #clean slate
+            boat.resetValues()
+            #Set wind
+            boat.wind = Vector(Angle(1,270),s)
+            #Boat going in a direction
+            boat.angle = Angle(1,aoa)
+            cont.setTarget(Angle(1,aoa))
 
-    for aoa in range(-90,90):
-        #clean slate
-        boat.resetValues()
-        #Set wind
-        boat.wind = Vector(Angle(1,180),1)
-        #Boat going in a direction
-        boat.angle = Angle(1,aoa)
-        # boat.linearVelocity = Vector(Angle(1,aoa),1)
-
-        for s in range(30):
-            for ms in range(100): # this must be kept high as to avoid over amplifying innacuracy loops 
-                # boat.sails[0].angle = Angle(1,38)
-                #We then set optimal sail configuration
-                boat.sails[0].setSailRotation(boat.globalAparentWind().angle+Angle(1,180)-Angle(1,38))
-                boat.sails[0].angle = Angle(1,boat.globalAparentWind().angle+Angle(1,180)-Angle(1,38))
-                num =2
-                time = 0.01
-                #update velocities
-                for i in range(num):
-                    boat.updateLinearVelocity(time/num)
-                    boat.updateRotationalVelocity(time/num)
-                    boat.updateSailForcesandMoments(time/num)
-                    boat.updateHullForcesandMoments()
-                # boat.updatePosition(time)
-                boat.rotationalVelocity = 0
-                # F= abs((boat.forces["sails"]+boat.forces["hulls"]).xcomp())4
-        F= abs((boat.forces["sails"]).xcomp())
-        # print("(",s,",",F,")")
-        print("(",math.cos(aoa*math.pi/180)*F,",",math.sin(aoa*math.pi/180)*F,")")
+            num =10
+            time = 0.01
+            for s in tqdm(range(30), desc="Computing "+str(90-aoa)+"..."):
+                for ms in range(100): # this must be kept high as to avoid over amplifying innacuracy loops 
+                    #We then set optimal sail configuration and all
+                    cont.update(time)
+                    #update velocities
+                    for i in range(num):
+                        boat.updateSailForcesandMoments(time/num)
+                        boat.updateHullForcesandMoments()
+                        boat.updateLinearVelocity(time/num)
+                        boat.updateRotationalVelocity(time/num)
+            F = boat.linearVelocity#boat.forces["sails"]#.norm #+boat.forces["hulls"]
+            #print("(",aoa,",",F,")")
+            F = abs(F * Vector(boat.angle,F.norm))#*math.cos(aoa*math.pi/180)
+            comp.append(F)
+            #print("(",math.cos(aoa*math.pi/180)*F,",",math.sin(aoa*math.pi/180)*F,")")
+        output.write(str(90-aoa) + ";"+str(comp).replace(", ", ";")[1:-1] + "\n")
+    output.close()
 
 
 

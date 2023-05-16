@@ -9,7 +9,12 @@ def printA(x):
     return x
 
 def aoa(x):
-    return -0.5*printA(x)+44#4/9
+    x = printA(x)
+    if x > 90:
+        x = 90 - x%90
+    if x < -90:
+        x = -(x%90)
+    return -0.5*x+44#4/9
 
 class Controler():
     def __init__(self,Boat, waypoint):
@@ -49,4 +54,5 @@ class Controler():
         self.boat.hulls[-1].angle = Angle(1,-10*coeff)*rNoise
     
     def updateSails(self):
-        self.boat.sails[0].setSailRotation(Angle(1,aoa(Angle.norm(self.boat.angle + Angle(1,90)-self.boat.globalAparentWind().angle+Angle(1,180)).calc())))
+        angle = Angle.norm(self.boat.angle + Angle(1,90)-self.boat.globalAparentWind().angle+Angle(1,180)).calc()
+        self.boat.sails[0].setSailRotation(Angle(1,aoa(angle)))

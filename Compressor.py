@@ -40,6 +40,7 @@ def generatePolars(boat,filename):
                         boat.updateHullForcesandMoments()
                         boat.updateLinearVelocity(time/num)
                         boat.updateRotationalVelocity(time/num)
+                    boat.angle = Angle(1,aoa)
             F = boat.linearVelocity#boat.forces["sails"]#.norm #+boat.forces["hulls"]
             #print("(",aoa,",",F,")")
             F = abs(F * Vector(boat.angle,F.norm))#*math.cos(aoa*math.pi/180)

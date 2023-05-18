@@ -17,14 +17,16 @@ def aoa(x):
     return -0.5*x+44#4/9
 
 class Controler():
-    def __init__(self,Boat, waypoint, polars = "test.pol"):
+    def __init__(self,Boat, waypoint, polars = "test3.pol"):
         self.boat = Boat
         self.waypoint = waypoint
-        self.polars = self.read(polars)
+        self.polars = self.readPolar(polars)
         self.target_angle = Angle(1,0)
+        self.course = self.plan("p",waypoint)
+
     def plan(self,plantype,waypoints):
-        #type can either E(ndurance), S(tation Keeping), Pr(ecision Navigation), P(ayload),
-        plantype = plantype.lower()
+        course = []
+        #type can either E(ndurance), S(tation Keeping), p(ecision Navigation), w(eight/payload),
         if plantype == "e":
             # Format of waypoints is as such
             # 4 Buoy in order of navigation
@@ -32,9 +34,27 @@ class Controler():
         elif plantype == "s":
             #4 Buoy in any order
             pass
-        elif plantype == "Pr":
-            # 4 Buoy in order of navigation
-            pass
+        elif plantype == "p":
+            # 4 Buoy in order of navigation'
+            course.extend(self.leg([self.boat.position.xcomp(), self.boat.position.ycomp()], waypoints[1]))
+            course.extend(self.leg(waypoints[1],waypoints[2]))
+            course.extend(self.leg(waypoints[2],[(waypoints[0][0]+waypoints[3][0])/2,(waypoints[0][1]+waypoints[3][1])/2]))
+        return course
+
+    def leg(self, start, stop):
+        angle = math.atan2(stop[1]-start[1],stop[0]-start[0])*180/math.pi
+        print(angle)
+        return []
+    def BestCNM(self, angle, wind): # best course to next mark
+        pass
+    def VB(self,angle, wind): # reading boat polars
+        for i, a in enumerate(self.polar[1:]):
+            if a[0] > angle:
+                for j, s in enumerate(self.polar[0][1:]):
+                    if s > wind:
+                        return self.polar[i+1][s+1] #TODO add interpolation
+        return -1
+            
 
     def readPolar(self,polar):
         rtn =[]
@@ -44,60 +64,10 @@ class Controler():
             c = ";"
         rtn.append([0]+[float(x) for x in text[0].split(c)[1:]])
         for i in text[1:]:
-            rtn.append([float(x) for x in i.split(c)])
+            if i.split(c)[0] != '':
+                rtn.append([float(x) for x in i.split(c)])
         return rtn
-    
-    def nearestA(self,a):
-        if a < 0:
-            a = abs(a)
-        if a > 180:
-            a = 180-a%180
-        for i,an in enumerate(self.polars[1:]):
-            if i+1 == len(self.polars)-1 or a <= an[0]:
-                return i+1
-        print("realy bad angle")
-        return -1
 
-    def nearestS(self,s):
-        for i,sp in enumerate(self.polars[0][1:]):
-            if i == len(self.polars)-1 or s == sp:
-                return i+1
-            if s < sp:
-                return i
-        print("realy bad speed")
-        return -1
-    
-    def VB(self,angle,speed):
-        return self.polars[self.nearestA(angle)][self.nearestS(speed)]
-
-    def VB2VMG(self,angle,speed):
-        #this automaticaly changes from data angles to unit circle by switching the sin with cos
-        return math.cos(angle*math.pi/180)*speed
-
-    def VMG(self, angle, speed):
-        return abs(self.VB2VMG(angle,self.VB(angle,speed)))
-    def MAXVMG(self,ws):
-        ws = self.nearestS(ws)
-        vmg = 0
-        a = [0,0,0,0]
-        for an, speed in enumerate(self.polars[1:self.nearestA(self.polars[-1][0]//2)+1]):
-            an +=1
-            newvmg = self.VB2VMG(self.polars[an][0],speed[ws])
-            if newvmg > vmg:
-                vmg = newvmg
-                a[0] = self.polars[an][0]
-                a[2] = 360-self.polars[an][0]
-        
-        #speeds are negative so we look for the smallest
-        vmg = 0
-        for an, speed in enumerate(self.polars[self.nearestA(self.polars[-1][0]//2)+1:]):
-            an += self.nearestA(self.polars[-1][0]//2)+1
-            newvmg = self.VB2VMG(self.polars[an][0],speed[ws])
-            if newvmg < vmg:
-                vmg = newvmg
-                a[1] = self.polars[an][0]
-                a[3] = 360-self.polars[an][0]
-        return a
     def setTarget(self,angle):
         self.target_angle = angle
 

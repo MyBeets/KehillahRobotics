@@ -40,7 +40,8 @@ class boatDisplayShell():
             [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
         ]
         self.buoy(waypoints)
-        self.autopilot = Controler(self.boat,waypoints)
+        self.autopilot = Controler(self.boat)
+        self.autopilot.course = self.autopilot.plan("p",waypoints)
     def buoy(self,points):
         for p in points:
             self.ax.add_patch(plt.Circle(p, meter2degreeY(0.4), color='orange'))
@@ -402,6 +403,6 @@ if __name__ == "__main__":
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
     polars = input("recalc Polars Y/N:\n")
     if "y" in polars.lower():
-        generatePolars(boat,"test2")
+        generatePolars(boat,"test")
     render = display(lakeShoreline,boat)
     render.runAnimation()

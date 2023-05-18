@@ -13,11 +13,11 @@ def printA(x):
 
 def generatePolars(boat,filename):
     boat = copy.deepcopy(boat)
-    cont = Controler(boat,[])
+    cont = Controler(boat)
     speeds = [0.3,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5,5.5,6,6.5,7] #.58 kt to 13.6kt
     output = open(filename + ".pol","w")
     output.write("twa/tws;"+str(speeds).replace(", ", ";")[1:-1] + "\n")
-    for aoa in range(90,-91,-10):
+    for aoa in range(90,-91,-3):
         #if True:
         #aoa = 0
         comp = []

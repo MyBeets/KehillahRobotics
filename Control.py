@@ -17,15 +17,14 @@ def aoa(x):
     return -0.5*x+44#4/9
 
 class Controler():
-    def __init__(self,Boat, waypoint, polars = "test3.pol"):
+    def __init__(self,Boat, polars = "test.pol"):
         self.boat = Boat
-        self.waypoint = waypoint
         self.polars = self.readPolar(polars)
         self.target_angle = Angle(1,0)
-        self.course = self.plan("p",waypoint)
+        self.course = []
 
     def plan(self,plantype,waypoints):
-        course = []
+        course = []# Course will comprise of a sequence of checkpoints creating a good path
         #type can either E(ndurance), S(tation Keeping), p(ecision Navigation), w(eight/payload),
         if plantype == "e":
             # Format of waypoints is as such
@@ -43,16 +42,34 @@ class Controler():
 
     def leg(self, start, stop):
         angle = Angle(1,math.atan2(stop[1]-start[1],stop[0]-start[0])*180/math.pi)
-        apparentAngle = self.boat.wind.angle+Angle(1,180)-angle
-        print(self.BestCNM(apparentAngle, self.boat.wind.norm))
-        return []
-    def BestCNM(self, angle, wind): # best course to next mark
-        # angle is relative to wind
-        return self.VB(angle, wind)
+        apparentAngle = Angle.norm(self.boat.wind.angle+Angle(1,180)-angle)
+        steps = 3
+        if abs(printA(apparentAngle.calc())) < self.polars[-1][0]: # upwind
+            print("upwind")
+            self.polars[-1][0]
+        elif abs(printA(apparentAngle.calc())) < self.polars[-1][1]: #downwind
+            print("downwind")
+
+        return stop
+    
+    # NOTE: I've desided using best course to next mark while probably the optimal solution brings in a level of complexity that we do not
+    # have the time to handle, thus we'll be simplifying.
+    # def BestCNM(self, angle, wind): # best course to next mark
+    #     # angle is relative to wind
+    #     ma = 0
+    #     mcnm = 0
+    #     for a in range(-180,180):
+    #         l = self.VB(Angle(1,a), wind)
+    #         CNM = Vector(Angle(1,a),l) * Vector(angle,l)
+    #         if mcnm < CNM:
+    #             ma = a
+    #             mcnm = CNM
+    #     axis  = printA(angle.calc())
+    #     return [ma,ma-(ma - axis)*2]
     def VB(self,angle, wind): # reading boat polars
         angle =abs(angle.calc())
         angle %= 180
-        for i, a in enumerate(self.polars[1:]):
+        for i, a in enumerate(self.polars[1:-1]):
             if a[0] > angle:
                 for j, s in enumerate(self.polars[0][1:]):
                     if s > wind:
@@ -67,9 +84,10 @@ class Controler():
         if text[0].find(";") != -1:
             c = ";"
         rtn.append([0]+[float(x) for x in text[0].split(c)[1:]])
-        for i in text[1:]:
+        for i in text[1:-1]:
             if i.split(c)[0] != '':
                 rtn.append([float(x) for x in i.split(c)])
+        rtn.append([float(x) for x in text[-1].split(";")[1:]])
         return rtn
 
     def setTarget(self,angle):

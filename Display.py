@@ -33,8 +33,17 @@ class boatDisplayShell():
         self.refLat =refLat
     def initAuto(self):
         #This function needs to be ran after some other stuff
-        self.autopilot = Controler(self.boat,[self.boat.position.xcomp()+0.0002,self.boat.position.ycomp()+0.0002])
-        self.ax.plot([self.boat.position.xcomp(),self.boat.position.xcomp()+0.0002],[self.boat.position.ycomp(),self.boat.position.ycomp()+0.0002], color = 'red')
+        waypoints = [
+            [self.boat.position.xcomp()-meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
+            [self.boat.position.xcomp()-meter2degreeX(1.5,self.refLat)-meter2degreeX(25,self.refLat),self.boat.position.ycomp()-meter2degreeY(25*math.sqrt(3))],
+            [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat)+meter2degreeX(25,self.refLat),self.boat.position.ycomp()-meter2degreeY(25*math.sqrt(3))],
+            [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
+        ]
+        self.buoy(waypoints)
+        self.autopilot = Controler(self.boat,waypoints)
+    def buoy(self,points):
+        for p in points:
+            self.ax.add_patch(plt.Circle(p, meter2degreeY(0.4), color='orange'))
     def createBoat(self):
         self.hullDisplay = []
         self.sailDisplay = []
@@ -384,11 +393,11 @@ if __name__ == "__main__":
     #sail = foil(data_dir+"\\data\\combinedSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
     sail.setSailRotation(Angle(1,0))
     # sail.angle += Angle(1,10)
-    wind = Vector(Angle(1,270),3.6) # Going South wind, 7 kn
+    wind = Vector(Angle(1,270),5.3) # Going South wind, 7 kn
     xpos = -122.09064
     ypos = 37.431749
     boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,mass =15,refLat=ypos)
-    boat.angle = Angle(1,0)
+    boat.angle = Angle(1,-90)
     sail.angle = Angle(1,0)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
     polars = input("recalc Polars Y/N:\n")

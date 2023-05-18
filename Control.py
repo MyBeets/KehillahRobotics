@@ -42,17 +42,21 @@ class Controler():
         return course
 
     def leg(self, start, stop):
-        angle = math.atan2(stop[1]-start[1],stop[0]-start[0])*180/math.pi
-        print(angle)
+        angle = Angle(1,math.atan2(stop[1]-start[1],stop[0]-start[0])*180/math.pi)
+        apparentAngle = self.boat.wind.angle+Angle(1,180)-angle
+        print(self.BestCNM(apparentAngle, self.boat.wind.norm))
         return []
     def BestCNM(self, angle, wind): # best course to next mark
-        pass
+        # angle is relative to wind
+        return self.VB(angle, wind)
     def VB(self,angle, wind): # reading boat polars
-        for i, a in enumerate(self.polar[1:]):
+        angle =abs(angle.calc())
+        angle %= 180
+        for i, a in enumerate(self.polars[1:]):
             if a[0] > angle:
-                for j, s in enumerate(self.polar[0][1:]):
+                for j, s in enumerate(self.polars[0][1:]):
                     if s > wind:
-                        return self.polar[i+1][s+1] #TODO add interpolation
+                        return self.polars[i+1][j+1] #TODO add interpolation
         return -1
             
 

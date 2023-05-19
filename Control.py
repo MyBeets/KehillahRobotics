@@ -1,6 +1,7 @@
 # I'll start out with a simple test that aims to maintain a certain direction
 import math
 from Variables import *
+import numpy as np
 
 def printA(x):
     x %= 360
@@ -10,21 +11,19 @@ def printA(x):
 
 def aoa(x):
     x = printA(x)
-    if x > 90:
-        x = 90 - x%90
-    if x < -90:
-        x = -(x%90)
-    return -0.5*x+44#4/9
+    if x < 0:
+        return -44/90*x
+    return 44/90*x
+    # return -0.5*x+44#4/9
 
 class Controler():
     def __init__(self,Boat, polars = "test.pol"):
         self.boat = Boat
         self.polars = self.readPolar(polars)
-        self.target_angle = Angle(1,0)
         self.course = []
 
     def plan(self,plantype,waypoints):
-        course = []# Course will comprise of a sequence of checkpoints creating a good path
+        course = [[self.boat.position.xcomp(),self.boat.position.ycomp()]]# Course will comprise of a sequence of checkpoints creating a good path
         #type can either E(ndurance), S(tation Keeping), p(ecision Navigation), w(eight/payload),
         if plantype == "e":
             # Format of waypoints is as such
@@ -45,12 +44,34 @@ class Controler():
         apparentAngle = Angle.norm(self.boat.wind.angle+Angle(1,180)-angle)
         steps = 3
         if abs(printA(apparentAngle.calc())) < self.polars[-1][0]: # upwind
-            print("upwind")
-            self.polars[-1][0]
+            # We want to get to stop only using the upwind BVMG
+            v = Vector(Angle(1,round(math.atan2(stop[1]- start[1],stop[0]- start[0])*180/math.pi*10000)/10000),math.sqrt((stop[0]- start[0])**2+(stop[1]- start[1])**2))
+            k = Vector(self.boat.wind.angle+Angle(1,180+self.polars[-1][0]),1)
+            j = Vector(self.boat.wind.angle+Angle(1,180-self.polars[-1][0]),1)
+            D = np.linalg.det(np.array([[k.xcomp(),j.xcomp()],[k.ycomp(),j.ycomp()]]))
+            Dk = np.linalg.det(np.array([[v.xcomp(),j.xcomp()],[v.ycomp(),j.ycomp()]]))
+            Dj = np.linalg.det(np.array([[k.xcomp(),v.xcomp()],[k.ycomp(),v.ycomp()]]))
+            a = Dk/D # number of k vectors
+            b = Dj/D # number of j vectors
+            k.norm *= a
+            j.norm *= b
+            ans = [[start[0]+k.xcomp(),start[1]+k.ycomp()],stop]
+            return  ans
         elif abs(printA(apparentAngle.calc())) < self.polars[-1][1]: #downwind
-            print("downwind")
+            v = Vector(Angle(1,round(math.atan2(stop[1]- start[1],stop[0]- start[0])*180/math.pi*10000)/10000),math.sqrt((stop[0]- start[0])**2+(stop[1]- start[1])**2))
+            k = Vector(self.boat.wind.angle+Angle(1,180+self.polars[-1][1]),1)
+            j = Vector(self.boat.wind.angle+Angle(1,180-self.polars[-1][1]),1)
+            D = np.linalg.det(np.array([[k.xcomp(),j.xcomp()],[k.ycomp(),j.ycomp()]]))
+            Dk = np.linalg.det(np.array([[v.xcomp(),j.xcomp()],[v.ycomp(),j.ycomp()]]))
+            Dj = np.linalg.det(np.array([[k.xcomp(),v.xcomp()],[k.ycomp(),v.ycomp()]]))
+            a = Dk/D # number of k vectors
+            b = Dj/D # number of j vectors
+            k.norm *= a
+            j.norm *= b
+            ans = [[start[0]+k.xcomp(),start[1]+k.ycomp()],stop]
+            return  ans
 
-        return stop
+        return [stop]
     
     # NOTE: I've desided using best course to next mark while probably the optimal solution brings in a level of complexity that we do not
     # have the time to handle, thus we'll be simplifying.
@@ -90,19 +111,16 @@ class Controler():
         rtn.append([float(x) for x in text[-1].split(";")[1:]])
         return rtn
 
-    def setTarget(self,angle):
-        self.target_angle = angle
-
     def update(self,dt,rNoise= 2,stability=1): # less noise = faster rotation, stability tries to limit angular momentum
         self.updateRudder(rNoise,stability)
         self.updateSails()
     def updateRudder(self,rNoise,stability):
-        # dx = self.waypoint[0]-self.boat.position.xcomp()
-        # dy = self.waypoint[1]-self.boat.position.ycomp()
-        # target_angle = Angle(1,math.atan2(dy,dx)*180/math.pi)
-        # target_angle = angle
+        dx = self.course[1][0]-self.boat.position.xcomp()
+        dy = self.course[1][1]-self.boat.position.ycomp()
+        target_angle = Angle(1,math.atan2(dy,dx)*180/math.pi)
+        #target_angle = angle
         current_angle = self.boat.linearVelocity.angle
-        dtheta = (self.target_angle - current_angle).calc()
+        dtheta = (target_angle - current_angle).calc()
         rotV = self.boat.rotationalVelocity*180/math.pi *0.03
         # coeff = 1-(1/(dtheta.calc()*(1/rotV)+1))
         dtheta = printA(dtheta)
@@ -110,5 +128,10 @@ class Controler():
         self.boat.hulls[-1].angle = Angle(1,-10*coeff)*rNoise
     
     def updateSails(self):
-        angle = Angle.norm(self.boat.angle + Angle(1,90)-self.boat.globalAparentWind().angle+Angle(1,180)).calc()
+        #angle = Angle.norm(self.boat.angle + Angle(1,90)-self.boat.globalAparentWind().angle+Angle(1,180)).calc()
+        wind = self.boat.globalAparentWind()
+        angle = Angle(1,math.acos((wind * Vector(self.boat.angle,1))/wind.norm)*180/math.pi)
+        if Angle.norm(wind.angle+Angle(1,180)).calc() > angle.calc():
+            angle = Angle(1,180) -angle
+        angle = angle.calc()
         self.boat.sails[0].setSailRotation(Angle(1,aoa(angle)))

@@ -1,5 +1,9 @@
 from Variables import *
-
+def printA(x):
+    x %= 360
+    if x > 180:
+        x = -180 + x-180
+    return x
 class foil: # sail, foil, rudder
     def __init__(self, datasheet, material, WA, position = Vector(Angle(1,0),0),rotInertia = -1,size = 1.8, winches = []):
         self.datasheet = datasheet #string file location of csv
@@ -57,10 +61,11 @@ class foil: # sail, foil, rudder
     def liftForce(self, aparentV):
         lift = self.lift(aparentV)
         #print(aparentV,self.mat)
-
+        # if self.mat == 1.204:
+        #     print(Angle.norm(aparentV.angle+Angle(1,180)),lift)
         if Angle.norm(aparentV.angle).calc() >= 180: # this is to split cases where wind is port or starboard
             if lift < 0: # if lift is negative we flip dirrection such that magnitude is always positive
-                return Vector(aparentV.angle+Angle(1,270),-lift)# 90+180
+                return Vector(aparentV.angle+Angle(1,270),-lift)# 180+90
             else:
                 return Vector(aparentV.angle+Angle(1,90),lift)
         else:
@@ -105,7 +110,12 @@ class foil: # sail, foil, rudder
         pos = self.position + Vector(self.angle+self.position.angle+Angle(1,180),self.size)
         for w in self.winches:
             if w.distance(pos) >= w.length:#or self.angle.calc() > w.rot.calc()
-                self.angle = w.rot-Angle(1,1)
+                if abs(printA((self.angle-w.rot).calc())) > abs(printA((self.angle+w.rot).calc())):
+                    w.rot = w.rot*-1
+                if Angle.norm(w.rot).calc() > 0:
+                    self.angle = w.rot-Angle(1,2)
+                else:
+                    self.angle = w.rot+Angle(1,2)
                 self.rotationalVelocity = 0
             # check for distances to winches and cord let out, cancel all rotation velocity if nessesary
         self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)

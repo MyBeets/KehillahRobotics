@@ -42,9 +42,14 @@ class boatDisplayShell():
         self.buoy(waypoints)
         self.autopilot = Controler(self.boat)
         self.autopilot.course = self.autopilot.plan("p",waypoints)
+        self.plotCourse(self.autopilot.course)
     def buoy(self,points):
         for p in points:
             self.ax.add_patch(plt.Circle(p, meter2degreeY(0.4), color='orange'))
+    def plotCourse(self,course):
+        xs = [x[0] for x in course]
+        ys = [x[1] for x in course]
+        self.ax.plot(xs,ys, color = 'red')
     def createBoat(self):
         self.hullDisplay = []
         self.sailDisplay = []
@@ -276,7 +281,6 @@ class display:
         self.auto = not self.auto
         if self.auto:
             self.autoButton.label.set_text('Auto Pilot: ON')
-            self.boat.autopilot.setTarget(self.boat.boat.angle)
         else:
             self.autoButton.label.set_text('Auto Pilot: OFF')
     def forceS(self,t):
@@ -398,7 +402,7 @@ if __name__ == "__main__":
     xpos = -122.09064
     ypos = 37.431749
     boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,mass =15,refLat=ypos)
-    boat.angle = Angle(1,-90)
+    boat.angle = Angle(1,-93)
     sail.angle = Angle(1,0)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
     polars = input("recalc Polars Y/N:\n")

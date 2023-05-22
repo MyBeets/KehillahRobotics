@@ -11,8 +11,8 @@ def printA(x):
 
 def aoa(x):
     x = printA(x)
-    if x < 0:
-        return -44/90*x
+    # if x < 0:
+    #     return -44/90*x
     return 44/90*x
     # return -0.5*x+44#4/9
 
@@ -129,9 +129,13 @@ class Controler():
     
     def updateSails(self):
         #angle = Angle.norm(self.boat.angle + Angle(1,90)-self.boat.globalAparentWind().angle+Angle(1,180)).calc()
-        wind = self.boat.globalAparentWind()
-        angle = Angle(1,math.acos((wind * Vector(self.boat.angle,1))/wind.norm)*180/math.pi)
-        if Angle.norm(wind.angle+Angle(1,180)).calc() > angle.calc():
-            angle = Angle(1,180) -angle
-        angle = angle.calc()
-        self.boat.sails[0].setSailRotation(Angle(1,aoa(angle)))
+        wind = self.boat.globalAparentWind().angle
+        wind += Angle(1,180)
+        wind = wind - self.boat.angle
+        print(wind)
+        # # angle = Angle(1,math.acos((wind * Vector(self.boat.angle,1))/wind.norm)*180/math.pi)
+        # # if Angle.norm(wind.angle+Angle(1,180)).calc() > angle.calc():
+        # #     angle = Angle(1,180) -angle
+        # # angle = angle.calc()
+        # self.boat.sails[0].setSailRotation(Angle(1,aoa(angle)))
+        self.boat.sails[0].setSailRotation(Angle(1,aoa(wind.calc())))

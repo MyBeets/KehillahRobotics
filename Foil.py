@@ -99,17 +99,16 @@ class foil: # sail, foil, rudder
         forces = self.liftForce(wind) + self.dragForce(wind) # all this should be apparent to the sail
         ce = 1 # 1 meter right now
         moment = -1*math.sin(forces.angle.calc() * math.pi/180)* ce # the -1 is due to convention and format of apparent wind
-        rotInteria = 0.5
+        rotInteria = 0.1
         alfa = moment/rotInteria
         self.rotationalVelocity += alfa*dt
         pos = self.position + Vector(self.angle+self.position.angle+Angle(1,180),self.size)
         for w in self.winches:
-            if w.distance(pos) >= w.length or self.angle.calc() > w.rot.calc():
-                self.angle = w.rot
+            if w.distance(pos) >= w.length:#or self.angle.calc() > w.rot.calc()
+                self.angle = w.rot-Angle(1,1)
                 self.rotationalVelocity = 0
             # check for distances to winches and cord let out, cancel all rotation velocity if nessesary
         self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
-        self.rotationalVelocity /=1.001 # friction
 
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []
@@ -176,4 +175,4 @@ class Winch:
     def setLength(self,length):
         self.length = length
     def distance(self, pos2):
-        return math.sqrt((self.position.xcomp()+pos2.xcomp())**2 + (self.position.ycomp()+pos2.ycomp())**2)
+        return math.sqrt((self.position.xcomp()-pos2.xcomp())**2 + (self.position.ycomp()-pos2.ycomp())**2)

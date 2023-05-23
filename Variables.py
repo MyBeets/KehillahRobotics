@@ -140,6 +140,10 @@ def meter2degreeX(displacement, lattitude):
     R=111111
     return displacement/R#(R*math.cos(lattitude*math.pi/180))
 
+def degree2meter(disp):#obviously this has limitations
+    R=111111
+    return disp*R#(R*math.cos(lat*math.pi/180))
+
 class Vector():
     def __init__(self,Angle,magnitude):
         self.angle = Angle
@@ -170,6 +174,8 @@ class Vector():
         #return Vector(Angle(1, round(math.atan2(dy,dx)*180/math.pi*10000000)/10000000),round(math.sqrt(dx*dx+dy*dy)*10000000)/10000000)
     def __mul__(self,x):
         if type(x) == Vector:
+            #print(self.xcomp()*x.xcomp(),self.ycomp()*x.ycomp())
+            #return self.xcomp()*x.xcomp()+self.ycomp()*x.ycomp()
             return self.norm * x.norm * math.cos((x.angle.calc()-self.angle.calc())*math.pi/180)
             #raise Exception("Vector class currently doesn't support non scalar multiplication")
         else:

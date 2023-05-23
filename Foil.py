@@ -62,7 +62,7 @@ class foil: # sail, foil, rudder
         lift = self.lift(aparentV)
         #print(aparentV,self.mat)
         # if self.mat == 1.204:
-        #     print(Angle.norm(aparentV.angle+Angle(1,180)),lift)
+            #print(Angle.norm(aparentV.angle+Angle(1,180)),lift,self.cd(Angle.norm(aparentV.angle+Angle(1,180))),self.cl(Angle.norm(aparentV.angle+Angle(1,180))))
         if Angle.norm(aparentV.angle).calc() >= 180: # this is to split cases where wind is port or starboard
             if lift < 0: # if lift is negative we flip dirrection such that magnitude is always positive
                 return Vector(aparentV.angle+Angle(1,270),-lift)# 180+90
@@ -134,10 +134,10 @@ class foil: # sail, foil, rudder
                 values.append(float(line.split(",")[idx]))
                 line = sheet.readline()
         else:
-            if datasheet.find("mainSailCoeffs"):
-                units = [Angle(0,abs(float(x)//2)) for x in sheet.readline().split()[1:]]
+            if datasheet.find("mainSailCoeffs") != -1:
+                units = [Angle(0,float(x)//2) for x in sheet.readline().split()[1:]]
             else:
-                units = [Angle(0,abs(float(x))) for x in sheet.readline().split()[1:]]
+                units = [Angle(0,float(x)) for x in sheet.readline().split()[1:]]
             line = sheet.readline()
             while line.split()[0] != atr:
                 line = sheet.readline()

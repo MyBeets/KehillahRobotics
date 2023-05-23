@@ -246,8 +246,8 @@ class display:
         self.bRot = Slider(
             ax=bax,
             label="Rudder Rotation:",
-            valmin=-90,
-            valmax=90,
+            valmin=-20,
+            valmax=20,
             valinit=self.boat.boat.angle.calc(),
         )
         self.bRot.on_changed(self.bUpdate)
@@ -394,8 +394,8 @@ if __name__ == "__main__":
     offset = 0.45 # 15cm
     BabordWinch = Winch(Vector(Angle(1,180),0.6) + Vector(Angle(1,270),offset), 30, 0.025) #2.5cm radius
     TribordWinch = Winch(Vector(Angle(1,0),0.6) + Vector(Angle(1,270),offset), 30, 0.025) #2.5cm radius
-    sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
-    #sail = foil(data_dir+"\\data\\combinedSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
+    #sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
+    sail = foil(data_dir+"\\data\\MarchajSail.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
     sail.setSailRotation(Angle(1,0))
     # sail.angle += Angle(1,10)
     wind = Vector(Angle(1,270),5.3) # Going South wind, 7 kn
@@ -403,7 +403,8 @@ if __name__ == "__main__":
     ypos = 37.431749
     boat = Boat([ama1,vaka,ama2,rudder],[sail],wind,mass =15,refLat=ypos)
     boat.angle = Angle(1,-93)
-    sail.angle = Angle(1,0)
+    sail.angle = Angle(1,75)
+    sail.setSailRotation(sail.angle)
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
     polars = input("recalc Polars Y/N:\n")
     if "y" in polars.lower():

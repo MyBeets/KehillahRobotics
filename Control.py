@@ -114,9 +114,41 @@ class Controler():
     def update(self,dt,rNoise= 2,stability=1): # less noise = faster rotation, stability tries to limit angular momentum
         self.updateRudder(rNoise,stability)
         self.updateSails()
+
+    def isEnp(self,a1,a2):
+        a1 = Angle.norm(a1).calc()
+        a2 = Angle.norm(a2).calc()
+        wind = Angle.norm(self.boat.wind.angle).calc()
+        if (a1 < wind and wind < a2) or (a2 < wind and wind < a1):
+            return True
+        return False
+    def isVir(self,a1,a2):
+        a1 = Angle.norm(a1).calc()
+        a2 = Angle.norm(a2).calc()
+        wind = Angle.norm(self.boat.wind.angle+Angle(1,180)).calc()
+        if (a1 < wind and wind < a2) or (a2 < wind and wind < a1):
+            return True
+        return False
+
+    def nextP(self):
+        r = 3#7meter radius to play it safe
+        dy = (self.boat.position.ycomp() - self.course[0][1])
+        dx = (self.boat.position.xcomp() - self.course[0][0])
+        dist = degree2meter(math.sqrt(dx**2 + dy**2))
+        if dist < r:
+            a1 =Angle(1,round(math.atan2(dy,dx)*180/math.pi*10000)/10000)
+            a2 =Angle(1,round(math.atan2(self.course[1][1]- self.course[0][1],self.course[1][0]-self.course[0][0])*180/math.pi*10000)/10000)
+            if self.isEnp(a1,a2): #gybe
+                return 1
+            if self.isVir(a1,a2):#tacking
+                return 2
+            self.course.pop(0)
+        return 0 
     def updateRudder(self,rNoise,stability):
-        dx = self.course[1][0]-self.boat.position.xcomp()
-        dy = self.course[1][1]-self.boat.position.ycomp()
+        if self.nextP() == 1:
+            print("Enpanage")
+        dx = self.course[0][0]-self.boat.position.xcomp()
+        dy = self.course[0][1]-self.boat.position.ycomp()
         target_angle = Angle(1,math.atan2(dy,dx)*180/math.pi)
         #target_angle = angle
         current_angle = self.boat.linearVelocity.angle
@@ -132,7 +164,6 @@ class Controler():
         wind = self.boat.globalAparentWind().angle
         wind += Angle(1,180)
         wind = wind - self.boat.angle
-        print(wind)
         # # angle = Angle(1,math.acos((wind * Vector(self.boat.angle,1))/wind.norm)*180/math.pi)
         # # if Angle.norm(wind.angle+Angle(1,180)).calc() > angle.calc():
         # #     angle = Angle(1,180) -angle

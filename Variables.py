@@ -32,11 +32,11 @@ class Variable:
 
     def __str__(self):
         if self.type == 0:
-            return "Data: "+ str(round(self.value*100)/100)
+            return "Data: "+ str(round(self.value*10000)/10000)
         if self.type == 1:
-            return "Calc: "+ str(round(self.value*100)/100)
+            return "Calc: "+ str(round(self.value*10000)/10000)
         if self.type == 2:
-            return "Display: "+ str(round(self.value*100)/100)
+            return "Display: "+ str(round(self.value*10000)/10000)
     def __add__(self,x):#results are always in the type of the array on which the operation is called
         return Variable(self.type, self.value+x.nType(self.type))
     def __sub__(self,x):

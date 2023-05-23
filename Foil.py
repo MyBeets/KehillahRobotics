@@ -27,7 +27,7 @@ class foil: # sail, foil, rudder
         else:
             self.liftC = self.read(self.datasheet,"CL")
             self.dragC = self.read(self.datasheet,"CD")
-            if datasheet.find("SailCoeffs") == -1:
+            if datasheet.find("Sail") == -1:
                 self.polygon = self.readPoly(datasheet)
         
     def readPoly(self, datasheet):
@@ -135,9 +135,9 @@ class foil: # sail, foil, rudder
                 line = sheet.readline()
         else:
             if datasheet.find("mainSailCoeffs"):
-                units = [Angle(0,float(x)//2) for x in sheet.readline().split()[1:]]
+                units = [Angle(0,abs(float(x)//2)) for x in sheet.readline().split()[1:]]
             else:
-                units = [Angle(0,float(x)) for x in sheet.readline().split()[1:]]
+                units = [Angle(0,abs(float(x))) for x in sheet.readline().split()[1:]]
             line = sheet.readline()
             while line.split()[0] != atr:
                 line = sheet.readline()

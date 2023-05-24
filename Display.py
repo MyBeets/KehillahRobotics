@@ -19,7 +19,7 @@ import copy
 import re
 
 fps = 70
-numCycle = 5
+numCycle = 20
 data_dir = os.path.dirname(__file__) #abs dir
 
 def rm_ansi(line):
@@ -33,15 +33,21 @@ class boatDisplayShell():
         self.refLat =refLat
     def initAuto(self):
         #This function needs to be ran after some other stuff
-        waypoints = [
-            [self.boat.position.xcomp()-meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
-            [self.boat.position.xcomp()-meter2degreeX(1.5,self.refLat)-meter2degreeX(25,self.refLat),self.boat.position.ycomp()-meter2degreeY(25*math.sqrt(3))],
-            [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat)+meter2degreeX(25,self.refLat),self.boat.position.ycomp()-meter2degreeY(25*math.sqrt(3))],
-            [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
+        # waypointsPr = [
+        #     [self.boat.position.xcomp()-meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
+        #     [self.boat.position.xcomp()-meter2degreeX(1.5,self.refLat)-meter2degreeX(25,self.refLat),self.boat.position.ycomp()-meter2degreeY(25*math.sqrt(3))],
+        #     [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat)+meter2degreeX(25,self.refLat),self.boat.position.ycomp()-meter2degreeY(25*math.sqrt(3))],
+        #     [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
+        # ]
+        waypointsE = [
+            [self.boat.position.xcomp()+meter2degreeX(25,self.refLat),self.boat.position.ycomp()],
+            [self.boat.position.xcomp()+meter2degreeX(25,self.refLat),self.boat.position.ycomp()+meter2degreeY(15)],
+            [self.boat.position.xcomp()-meter2degreeX(25,self.refLat),self.boat.position.ycomp()+meter2degreeY(15)],
+            [self.boat.position.xcomp()-meter2degreeX(25,self.refLat),self.boat.position.ycomp()],
         ]
-        self.buoy(waypoints)
+        self.buoy(waypointsE)
         self.autopilot = Controler(self.boat)
-        self.autopilot.course = self.autopilot.plan("p",waypoints)
+        self.autopilot.course = self.autopilot.plan("e",waypointsE)
         self.plotCourse(self.autopilot.course)
     def buoy(self,points):
         for p in points:

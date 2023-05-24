@@ -25,14 +25,24 @@ class Controler():
     def plan(self,plantype,waypoints):
         course = [[self.boat.position.xcomp(),self.boat.position.ycomp()]]# Course will comprise of a sequence of checkpoints creating a good path
         #type can either E(ndurance), S(tation Keeping), p(recision Navigation), w(eight/payload),
-        if plantype == "e":
+        if plantype == "e":#endurance
             # Format of waypoints is as such
             # 4 Buoy in order of navigation
-            pass
-        elif plantype == "s":
+            n = 4
+            course.extend(self.leg([self.boat.position.xcomp(), self.boat.position.ycomp()], waypoints[0]))
+
+            c2 = self.leg(waypoints[0],waypoints[1])
+            c2.extend(self.leg(waypoints[1],waypoints[2]))
+            c2.extend(self.leg(waypoints[2],waypoints[3]))
+            c2.extend([waypoints[0]])
+            course.extend(c2*n)
+            course.pop()
+            course.extend(self.leg(waypoints[3],[self.boat.position.xcomp(), self.boat.position.ycomp()]))
+        elif plantype == "s":#station keeping
             #4 Buoy in any order
+
             pass
-        elif plantype == "p":
+        elif plantype == "p":#precision
             # 4 Buoy in order of navigation'
             course.extend(self.leg([self.boat.position.xcomp(), self.boat.position.ycomp()], waypoints[1]))
             course.extend(self.leg(waypoints[1],waypoints[2]))
@@ -42,8 +52,6 @@ class Controler():
     def leg(self, start, stop):
         angle = Angle(1,math.atan2(stop[1]-start[1],stop[0]-start[0])*180/math.pi)
         apparentAngle = abs(printA(Angle.norm(self.boat.wind.angle+Angle(1,180)-angle).calc()))
-        steps = 3
-        print(apparentAngle,self.polars[-1])
         if apparentAngle < self.polars[-1][0]: # upwind
             # We want to get to stop only using the upwind BVMG
             v = Vector(Angle(1,round(math.atan2(stop[1]- start[1],stop[0]- start[0])*180/math.pi*10000)/10000),math.sqrt((stop[0]- start[0])**2+(stop[1]- start[1])**2))

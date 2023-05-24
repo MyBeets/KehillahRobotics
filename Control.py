@@ -40,8 +40,9 @@ class Controler():
             course.extend(self.leg(waypoints[3],[self.boat.position.xcomp(), self.boat.position.ycomp()]))
         elif plantype == "s":#station keeping
             #4 Buoy in any order
-
-            pass
+            # center
+            course.extend(self.leg([self.boat.position.xcomp(), self.boat.position.ycomp()], [sum(p[0] for p in waypoints)/len(waypoints),sum(p[1] for p in waypoints)/len(waypoints)]))
+            
         elif plantype == "p":#precision
             # 4 Buoy in order of navigation'
             course.extend(self.leg([self.boat.position.xcomp(), self.boat.position.ycomp()], waypoints[1]))
@@ -160,6 +161,16 @@ class Controler():
         dy = self.course[0][1]-self.boat.position.ycomp()
         target_angle = Angle(1,math.atan2(dy,dx)*180/math.pi)
         #target_angle = angle
+        current_angle = self.boat.linearVelocity.angle
+        dtheta = (target_angle - current_angle).calc()
+        rotV = self.boat.rotationalVelocity*180/math.pi *0.03
+        # coeff = 1-(1/(dtheta.calc()*(1/rotV)+1))
+        dtheta = printA(dtheta)
+        coeff = 2/math.pi * math.atan((dtheta)/40 - rotV/stability)
+        self.boat.hulls[-1].angle = Angle(1,-10*coeff)*rNoise
+    
+    def updateRudderAngle(self,rNoise,stability,angle):
+        target_angle = angle
         current_angle = self.boat.linearVelocity.angle
         dtheta = (target_angle - current_angle).calc()
         rotV = self.boat.rotationalVelocity*180/math.pi *0.03

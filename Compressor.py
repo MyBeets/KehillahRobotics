@@ -28,14 +28,16 @@ def generatePolars(boat,filename):
             boat.wind = Vector(Angle(1,270),s)
             #Boat going in a direction
             boat.angle = Angle(1,aoa)
-            cont.setTarget(Angle(1,aoa))
+            # cont.setTarget(Angle(1,aoa))
 
             num =20
             time = 0.01
             for s in range(5):
                 for ms in range(100): # this must be kept high as to avoid over amplifying innacuracy loops 
                     #We then set optimal sail configuration and all
-                    cont.update(time)
+                    # cont.update(time)
+                    cont.updateRudderAngle(2,1,Angle(1,aoa))
+                    cont.updateSails()
                     #update velocities
                     for i in range(num):
                         boat.updateSailForcesandMoments(time/num)

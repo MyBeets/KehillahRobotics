@@ -415,6 +415,6 @@ if __name__ == "__main__":
     boat.setPos(Vector(Angle(1,round(math.atan2(ypos,xpos)*180/math.pi*10000)/10000),math.sqrt(xpos**2+ypos**2)))
     polars = input("recalc Polars Y/N:\n")
     if "y" in polars.lower():
-        generatePolars(boat,"test")
+        generatePolars(boat,"MarPol")
     render = display(lakeShoreline,boat)
     render.runAnimation()

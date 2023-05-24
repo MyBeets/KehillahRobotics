@@ -133,17 +133,21 @@ class Boat:
 
     #CONVENTION: For all this apparent wind stuff wind should always point in the dirrection it's going, so for a hull that's flow direction
     def sailAparentWind(self,idx=0):
-        # returns local aparent wind on boat (ie: wind angle in perspective of given sail)
-        wind = self.globalAparentWind()
-        ap = Angle(1,(wind * Vector(self.sails[idx].angle+self.angle,1))/wind.norm)
+        # # returns local aparent wind on boat (ie: wind angle in perspective of given sail)
+        # wind = self.globalAparentWind()
+        # ap = Angle(1,math.acos((wind * Vector(self.sails[idx].angle+self.angle,1))/wind.norm)*180/math.pi)
 
-        if Angle.norm(wind.angle+Angle(1,180)).calc() > ap.calc():
-            ap *= -1
+        # if Angle.norm(wind.angle+Angle(1,180)).calc() > Angle.norm(ap).calc(): #NOTE HERE"S THE PROBLEM
+        #     ap *= -1
         # ap = self.globalAparentWind() 
         # ap.angle += Angle(1,180)
-        # ap.angle = ap.angle-(self.sails[idx].angle+self.angle)
+        # ap.angle = (self.sails[idx].angle+self.angle)-ap.angle
         # ap.angle += Angle(1,180)
-        return Vector(ap,wind.norm)
+        ap = self.globalAparentWind() 
+        ap.angle += Angle(1,180)
+        ap.angle = ap.angle-(self.sails[idx].angle+self.angle)
+        ap.angle += Angle(1,180)
+        return ap#Vector(ap,wind.norm)
 
     def hullAparentWind(self,idx=0):
         # returns aparent water velocity on a hull 

@@ -176,15 +176,17 @@ class boatDisplayShell():
                 pos.angle += self.boat.angle - Angle(1,90)
                 pos += self.boat.position
                 self.winches[idx].set(center =(pos.xcomp(),pos.ycomp()))
-
-        #boat net forces
-        f = self.boat.forces["sails"]+self.boat.forces["hulls"]
-        self.forceDisplay[-2].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+forceScale*meter2degreeX(f.xcomp(),self.refLat)])
-        self.forceDisplay[-2].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+forceScale*meter2degreeY(f.ycomp())])
-        #boat velocity
-        self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+forceScale*meter2degreeX(self.boat.linearVelocity.xcomp(),self.refLat)])
-        self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+forceScale*meter2degreeY(self.boat.linearVelocity.ycomp())])
-
+        if showForces:
+            #boat net forces
+            f = self.boat.forces["sails"]+self.boat.forces["hulls"]
+            self.forceDisplay[-2].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+forceScale*meter2degreeX(f.xcomp(),self.refLat)])
+            self.forceDisplay[-2].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+forceScale*meter2degreeY(f.ycomp())])
+            #boat velocity
+            self.forceDisplay[-1].set_xdata([self.boat.position.xcomp(),self.boat.position.xcomp()+forceScale*meter2degreeX(self.boat.linearVelocity.xcomp(),self.refLat)])
+            self.forceDisplay[-1].set_ydata([self.boat.position.ycomp(),self.boat.position.ycomp()+forceScale*meter2degreeY(self.boat.linearVelocity.ycomp())])
+        else:
+            self.forceDisplay[-2].set_linestyle("None")
+            self.forceDisplay[-1].set_linestyle("None")
         # #connections
         # for c in self.connections:
 

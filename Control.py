@@ -24,7 +24,7 @@ class Controler():
 
     def plan(self,plantype,waypoints):
         course = [[self.boat.position.xcomp(),self.boat.position.ycomp()]]# Course will comprise of a sequence of checkpoints creating a good path
-        #type can either E(ndurance), S(tation Keeping), p(ecision Navigation), w(eight/payload),
+        #type can either E(ndurance), S(tation Keeping), p(recision Navigation), w(eight/payload),
         if plantype == "e":
             # Format of waypoints is as such
             # 4 Buoy in order of navigation
@@ -41,9 +41,10 @@ class Controler():
 
     def leg(self, start, stop):
         angle = Angle(1,math.atan2(stop[1]-start[1],stop[0]-start[0])*180/math.pi)
-        apparentAngle = Angle.norm(self.boat.wind.angle+Angle(1,180)-angle)
+        apparentAngle = abs(printA(Angle.norm(self.boat.wind.angle+Angle(1,180)-angle).calc()))
         steps = 3
-        if abs(printA(apparentAngle.calc())) < self.polars[-1][0]: # upwind
+        print(apparentAngle,self.polars[-1])
+        if apparentAngle < self.polars[-1][0]: # upwind
             # We want to get to stop only using the upwind BVMG
             v = Vector(Angle(1,round(math.atan2(stop[1]- start[1],stop[0]- start[0])*180/math.pi*10000)/10000),math.sqrt((stop[0]- start[0])**2+(stop[1]- start[1])**2))
             k = Vector(self.boat.wind.angle+Angle(1,180+self.polars[-1][0]),1)
@@ -57,7 +58,7 @@ class Controler():
             j.norm *= b
             ans = [[start[0]+k.xcomp(),start[1]+k.ycomp()],stop]
             return  ans
-        elif abs(printA(apparentAngle.calc())) < self.polars[-1][1]: #downwind
+        elif apparentAngle > self.polars[-1][1]: #downwind
             v = Vector(Angle(1,round(math.atan2(stop[1]- start[1],stop[0]- start[0])*180/math.pi*10000)/10000),math.sqrt((stop[0]- start[0])**2+(stop[1]- start[1])**2))
             k = Vector(self.boat.wind.angle+Angle(1,180+self.polars[-1][1]),1)
             j = Vector(self.boat.wind.angle+Angle(1,180-self.polars[-1][1]),1)
@@ -138,11 +139,11 @@ class Controler():
         if dist < r:
             a1 =Angle(1,round(math.atan2(dy,dx)*180/math.pi*10000)/10000)
             a2 =Angle(1,round(math.atan2(self.course[1][1]- self.course[0][1],self.course[1][0]-self.course[0][0])*180/math.pi*10000)/10000)
+            self.course.pop(0)
             if self.isEnp(a1,a2): #gybe
                 return 1
             if self.isVir(a1,a2):#tacking
                 return 2
-            self.course.pop(0)
         return 0 
     def updateRudder(self,rNoise,stability):
         if self.nextP() == 1:

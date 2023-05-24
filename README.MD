@@ -17,6 +17,8 @@
 * As I switched from pyglet to matplotlib for display the `display` type for variables shouldn't be used
 
 # Conventions/Units:
+* Wind and flow stuff is a vector that points in the direction of the flow
+* For apparent angles if the wind has a lower angle than the boat it's negative angles
 *Due to the complexity of the problem multiple angle, positioning, speed, force, ... systems are inevitable*
 * ## Overall
     * ### Currently there seems to be 3 main "types" of units: Data, Calculations, Display.

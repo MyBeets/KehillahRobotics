@@ -19,7 +19,7 @@ import copy
 import re
 
 fps = 70
-
+numCycle = 5
 data_dir = os.path.dirname(__file__) #abs dir
 
 def rm_ansi(line):
@@ -102,7 +102,8 @@ class boatDisplayShell():
         self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'magenta')[0])
 
     def update(self, auto,showForces):
-        self.boat.update(1/fps)#*4
+        for i in range(numCycle):
+            self.boat.update(1/fps)#*4
         if auto:
             self.autopilot.update(1/fps)
         forceScale = 0.01
@@ -360,7 +361,7 @@ class display:
     def updateCycle(self,f):
         if not self.pause:
             self.boat.update(self.auto,self.forceShow)
-            self.time +=1/fps
+            self.time +=1/fps * numCycle
             self.bRot.set_val(printA(self.boat.boat.hulls[-1].angle.calc()))
 
             if len(self.boat.boat.sails[0].winches) == 0:

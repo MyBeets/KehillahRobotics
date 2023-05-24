@@ -107,18 +107,23 @@ class foil: # sail, foil, rudder
         rotInteria = 0.1
         alfa = moment/rotInteria
         self.rotationalVelocity += alfa*dt
-        pos = self.position + Vector(self.angle+self.position.angle+Angle(1,180),self.size)
+        pos1 = self.position + Vector(self.angle+self.position.angle+Angle(1,180),self.size)
+        angle2 = self.angle + Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
+        pos2 = self.position + Vector(angle2+self.position.angle+Angle(1,180),self.size)
         for w in self.winches:
-            if w.distance(pos) >= w.length:#or self.angle.calc() > w.rot.calc()
+            if w.distance(pos1) >= w.length and w.distance(pos1) <= w.distance(pos2):#or self.angle.calc() > w.rot.calc()
                 if abs(printA((self.angle-w.rot).calc())) > abs(printA((self.angle+w.rot).calc())):
-                    w.rot = w.rot*-1
+                    for n in self.winches:
+                        n.rot = n.rot*-1
                 if Angle.norm(w.rot).calc() > 0:
                     self.angle = w.rot-Angle(1,2)
                 else:
                     self.angle = w.rot+Angle(1,2)
                 self.rotationalVelocity = 0
+                alfa = 0
             # check for distances to winches and cord let out, cancel all rotation velocity if nessesary
-        self.angle += Angle(1,(self.rotationalVelocity*dt+(alfa*dt**2)/2)*180/math.pi)
+        if self.rotationalVelocity != 0:
+            self.angle = angle2
 
     def read(self, datasheet, atr):
         sheet = open(datasheet,"r");units = [];values = []

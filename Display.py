@@ -19,7 +19,7 @@ import copy
 import re
 
 fps = 70
-numCycle = 20
+numCycle = 1
 data_dir = os.path.dirname(__file__) #abs dir
 
 def rm_ansi(line):
@@ -39,16 +39,14 @@ class boatDisplayShell():
         #     [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat)+meter2degreeX(25,self.refLat),self.boat.position.ycomp()-meter2degreeY(25*math.sqrt(3))],
         #     [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
         # ]
-        waypointsE = [
+        self.waypoints = [# endurance
             [self.boat.position.xcomp()+meter2degreeX(25,self.refLat),self.boat.position.ycomp()],
             [self.boat.position.xcomp()+meter2degreeX(25,self.refLat),self.boat.position.ycomp()+meter2degreeY(15)],
             [self.boat.position.xcomp()-meter2degreeX(25,self.refLat),self.boat.position.ycomp()+meter2degreeY(15)],
             [self.boat.position.xcomp()-meter2degreeX(25,self.refLat),self.boat.position.ycomp()],
         ]
-        self.buoy(waypointsE)
+        self.buoy(self.waypoints)
         self.autopilot = Controler(self.boat)
-        self.autopilot.course = self.autopilot.plan("e",waypointsE)
-        self.plotCourse(self.autopilot.course)
     def buoy(self,points):
         for p in points:
             self.ax.add_patch(plt.Circle(p, meter2degreeY(0.4), color='orange'))
@@ -228,6 +226,8 @@ class display:
             if self.sRot.val != self.boat.boat.sails[0].winches[0].rot.calc():
                 self.boat.boat.sails[0].setSailRotation(Angle(1,self.sRot.val))
 
+    def wUpdate(self,v):
+        self.boat.boat.wind.angle = Angle(1,self.sRot.val+180)
 
     def boatControls(self):
         bax = plt.axes([0, 0, 1, 1])
@@ -253,6 +253,19 @@ class display:
         )
         self.sRot.on_changed(self.sUpdate)
 
+        wax = plt.axes([0, 0, 1, 1])
+        wforcesInp = InsetPosition(self.axes['D'], [0.45, 0.60, 0.9, 0.1]) #x,y,w,h
+        wax.set_axes_locator(wforcesInp)
+        self.wRot = Slider(
+            ax=wax,
+            label="Wind Angle:",
+            valmin=0,
+            valmax=360,
+            valinit=Angle.norm(self.boat.boat.wind.angle+Angle(1,180)).calc(),
+        )
+        self.wRot.on_changed(self.wUpdate)
+
+
 
     def pauseT(self,t):
         self.pause = not self.pause
@@ -270,6 +283,8 @@ class display:
     def autoF(self,t):
         self.auto = not self.auto
         if self.auto:
+            self.boat.autopilot.course = self.boat.autopilot.plan("e",self.boat.waypoints)
+            self.boat.plotCourse(self.boat.autopilot.course)
             self.autoButton.label.set_text('Auto Pilot: ON')
         else:
             self.autoButton.label.set_text('Auto Pilot: OFF')

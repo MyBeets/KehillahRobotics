@@ -15,8 +15,14 @@ const uint64_t pipes[2] = {0x54617572E9, 0x63726C665FLL}; //Send, Receive
 typedef struct{
   byte type; // message type, plan: 0->e, 1->s, 2->pr, 3 is set
   long base[2];//reference point for the remainder of the coordinates
-  word disp[3][2]; // TOO BIg
+  word disp[3][2];
 } receivePak; //size is 1+8+12
+
+typedef struct{
+  long pos[2];//reference point for the remainder of the coordinates
+  int w_dir;
+  int b_dir;
+} emitPak; //size is 8+2+2
 
 void setGPS(){
   Wire.begin();
@@ -45,6 +51,9 @@ long course[4*2][2];
 byte index = 0; //course index 
 byte course_size = 0;
 double BVMG[2] = {49.3,124.4};
+long latitude = 0;
+long longitude = 0;
+long gpsInterval = 0;
 void setup() {
   Serial.begin(9600); // Pins 0,1 this is link to moter arduino
   Serial1.begin(9600); //Pins 17, 16 this is link to Gyro+wind
@@ -80,8 +89,12 @@ void leg(long start[2], long end[2], int w_dir, int w_dir){//leg adds start midd
     course[course_size++] = end;
 }
 void loop() {
-  long latitude = GPS.getLatitude();//y
-  long longitude = GPS.getLongitude();//x
+  if (millis() - gpsInterval > 1000)
+  {
+    gpsInterval = millis();
+    latitude = GPS.getLatitude();//y
+    longitude = GPS.getLongitude();//x
+  }
   int b_dir, w_dir;
   if (radio.available()) {
     receivePak instr;
@@ -90,14 +103,24 @@ void loop() {
   }
   if (mode != 0){
     int rudder = rudderRot(2,1,longitude,latitude,b_dir);
+    int sail = sailRot(w_dir, b_dir);
   }
+  emitPak resp;
+  resp.pos = {longitude,latitude};
+  resp.w_dir = w_dir;
+  resp.b_dir = b_dir;
+  radio.stopListening();
+  radio.write(&resp, sizeof(resp));
+  radio.startListening();
+  delay(500);
 }
 
-void nextP(long lon, long lat):
+void nextP(long lon, long lat){
   int r = 5;//5meter radius to play it safe
   long dy = (lat - course[index][1]);
   long dx = (lon - course[index][0]);
   if (sqrt(dx*dx+dy*dy) < r) index++;
+}
 
 int rudderRot(int rNoise, int stability, long lon, long lat, int b_dir, int rot_v){
   nextP(lon, lat);
@@ -115,7 +138,7 @@ int rudderRot(int rNoise, int stability, long lon, long lat, int b_dir, int rot_
 }
 
 
-int updateSails(int w_dir, int b_dir){
+int sailRot(int w_dir, int b_dir){
     w_dir = w_dir - b_dir;
     if (w_dir > 180) w_dir = -180 + w_dir-180;
     return 44/90*wind;

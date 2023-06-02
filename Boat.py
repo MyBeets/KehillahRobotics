@@ -3,7 +3,7 @@ from Variables import *
 import copy
 
 class Boat:
-    def __init__(self, hulls, sails, wind,mass =10,refLat=37):
+    def __init__(self, hulls, sails, wind,mass =55,refLat=37):
         self.hulls = hulls #array of hulls
         self.sails = sails
         self.wind = wind
@@ -70,7 +70,7 @@ class Boat:
         #vf=v0+a*dt
         ax = (self.forces["sails"]+self.forces["hulls"]).xcomp()/self.mass
         ay = (self.forces["sails"]+self.forces["hulls"]).ycomp()/self.mass
-        a = Vector(Angle(1,round(math.atan2(ay,ax)*180/math.pi*1000000)/1000000),math.sqrt(ax**2+ay**2))
+        a = Vector(Angle(1,round(math.atan2(ay,ax+0.000000001)*180/math.pi*1000000)/1000000),math.sqrt(ax**2+ay**2))
         a *= dt
         self.linearVelocity += a
 

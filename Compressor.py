@@ -14,10 +14,11 @@ def printA(x):
 def generatePolars(boat,filename):
     boat = copy.deepcopy(boat)
     cont = Controler(boat)
-    speeds = [0.3,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5,5.5,6,6.5,7] #.58 kt to 13.6kt
+    #speeds = [0.3,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7] #.58 kt to 13.6kt
+    speeds = [0.3,1,3,5,5.5,6,6.5,7]
     output = open(filename + ".pol","w")
     output.write("twa/tws;"+str(speeds).replace(", ", ";")[1:-1] + "\n")
-    for aoa in range(90,-91,-3):
+    for aoa in range(90,-91,-10):#3
         #if True:
         #aoa = 0
         comp = []
@@ -32,7 +33,7 @@ def generatePolars(boat,filename):
 
             num =20
             time = 0.01
-            for s in range(5):
+            for s in range(2):
                 for ms in range(100): # this must be kept high as to avoid over amplifying innacuracy loops 
                     #We then set optimal sail configuration and all
                     # cont.update(time)

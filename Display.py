@@ -39,12 +39,19 @@ class boatDisplayShell():
         #     [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat)+meter2degreeX(25,self.refLat),self.boat.position.ycomp()-meter2degreeY(25*math.sqrt(3))],
         #     [self.boat.position.xcomp()+meter2degreeX(1.5,self.refLat),self.boat.position.ycomp()],
         # ]
-        self.waypoints = [# endurance
-            [self.boat.position.xcomp()+meter2degreeX(25,self.refLat),self.boat.position.ycomp()],
-            [self.boat.position.xcomp()+meter2degreeX(25,self.refLat),self.boat.position.ycomp()+meter2degreeY(15)],
-            [self.boat.position.xcomp()-meter2degreeX(25,self.refLat),self.boat.position.ycomp()+meter2degreeY(15)],
-            [self.boat.position.xcomp()-meter2degreeX(25,self.refLat),self.boat.position.ycomp()],
+        # self.waypoints = [# endurance
+        #     [self.boat.position.xcomp()+meter2degreeX(25,self.refLat),self.boat.position.ycomp()],
+        #     [self.boat.position.xcomp()+meter2degreeX(25,self.refLat),self.boat.position.ycomp()+meter2degreeY(15)],
+        #     [self.boat.position.xcomp()-meter2degreeX(25,self.refLat),self.boat.position.ycomp()+meter2degreeY(15)],
+        #     [self.boat.position.xcomp()-meter2degreeX(25,self.refLat),self.boat.position.ycomp()],
+        # ]
+        self.waypoints = [# station keeping
+            [self.boat.position.xcomp()+meter2degreeX(20,self.refLat),self.boat.position.ycomp()],
+            [self.boat.position.xcomp()+meter2degreeX(20,self.refLat),self.boat.position.ycomp()+meter2degreeY(40)],
+            [self.boat.position.xcomp()-meter2degreeX(20,self.refLat),self.boat.position.ycomp()+meter2degreeY(40)],
+            [self.boat.position.xcomp()-meter2degreeX(20,self.refLat),self.boat.position.ycomp()],
         ]
+        self.courseType = "s"
         self.buoy(self.waypoints)
         self.autopilot = Controler(self.boat)
     def buoy(self,points):
@@ -64,13 +71,11 @@ class boatDisplayShell():
             polygon = patches.Polygon(verts, color="gray") 
 
             #NOTE YOU"LL NEED TO ADD A REAL CENTER OF MASS FUNCTIONALITY
-            print("TODO: CENTER OF MASS")
             r = transforms.Affine2D().rotate_deg_around(self.boat.position.xcomp(),self.boat.position.ycomp(),(self.boat.angle+h.angle).calc())
 
             polygon.set_transform(r+ self.ax.transData)
             self.hullDisplay.append(self.ax.add_patch(polygon))
 
-            print("TODO: CENTER OF LATERAL RESISTANCE")
             #hull lift
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'red')[0])
             #hull drag
@@ -83,7 +88,6 @@ class boatDisplayShell():
             x2 = x1+meter2degreeX(math.cos((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size,self.refLat)
             y2 = y1+meter2degreeY(math.sin((180+self.boat.angle.calc()+s.angle.calc())*math.pi/180)*s.size)
             self.sailDisplay.append(self.ax.plot([x1,x2],[y1,y2], color = 'yellow')[0])
-            print("TODO: CENTER OF EFFORT")
             #sail lift
             self.forceDisplay.append(self.ax.plot([0,0],[0,0], color = 'gold')[0])
             #sail drag
@@ -98,8 +102,8 @@ class boatDisplayShell():
     def update(self, auto,showForces):
         for i in range(numCycle):
             self.boat.update(1/fps)#*4
-        if auto:
-            self.autopilot.update(1/fps)
+            if auto:
+                self.autopilot.update(1/fps)
         forceScale = 0.01
         #hulls
         for i, h in enumerate(self.hullDisplay):
@@ -227,7 +231,11 @@ class display:
                 self.boat.boat.sails[0].setSailRotation(Angle(1,self.sRot.val))
 
     def wUpdate(self,v):
-        self.boat.boat.wind.angle = Angle(1,self.sRot.val+180)
+        self.boat.boat.wind.angle = Angle(1,self.wRot.val+180)
+    
+    def spUpdate(self,v):
+        global numCycle
+        numCycle = int(v)
 
     def boatControls(self):
         bax = plt.axes([0, 0, 1, 1])
@@ -265,6 +273,18 @@ class display:
         )
         self.wRot.on_changed(self.wUpdate)
 
+        spax = plt.axes([0, 0, 1, 1])
+        spforcesInp = InsetPosition(self.axes['D'], [0.45, 0.45, 0.9, 0.1]) #x,y,w,h
+        spax.set_axes_locator(spforcesInp)
+        self.spRot = Slider(
+            ax=spax,
+            label="Comp Speed:",
+            valmin=1,
+            valmax=50,
+            valinit=1,
+        )
+        self.spRot.on_changed(self.spUpdate)
+
 
 
     def pauseT(self,t):
@@ -283,7 +303,7 @@ class display:
     def autoF(self,t):
         self.auto = not self.auto
         if self.auto:
-            self.boat.autopilot.course = self.boat.autopilot.plan("e",self.boat.waypoints)
+            self.boat.autopilot.course = self.boat.autopilot.plan(self.boat.courseType,self.boat.waypoints)
             self.boat.plotCourse(self.boat.autopilot.course)
             self.autoButton.label.set_text('Auto Pilot: ON')
         else:
@@ -389,15 +409,15 @@ if __name__ == "__main__":
     lakeAttitash = "Lake Attitash, Amesbury, Essex County, Massachusetts, USA"
     lakeShoreline = "Shoreline lake, Mountain View, Santa Clara County, California, United States"
 
-    vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 997.77, 0.25,rotInertia = 15,size = 1.8)
-    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.5,position = Vector(Angle(1,90),0.6),rotInertia = 100,size = 1.5)
-    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.5,position = Vector(Angle(1,-90),0.6),rotInertia = 100,size = 1.5)
-    rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 997.77, 0.5,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 100,size = 0.3)
+    vaka = foil(data_dir+"\\data\\xf-naca001034-il-1000000-Ex.csv", 997.77, 0.521,rotInertia = 2.69,size = 1.8)
+    ama1 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.1768,position = Vector(Angle(1,90),0.6),rotInertia = 3.939,size = 1.5)
+    ama2 = foil(data_dir+"\\data\\naca0009-R0.69e6-F180.csv", 997.77, 0.1768,position = Vector(Angle(1,-90),0.6),rotInertia = 3.939,size = 1.5)
+    rudder = foil(data_dir+"\\data\\naca0015-R7e7-F180.csv", 997.77, 0.0588,position = Vector(Angle(1,180),vaka.size/2),rotInertia = 0.01,size = 0.3)
     offset = 0.45 # 15cm
     BabordWinch = Winch(Vector(Angle(1,180),0.6) + Vector(Angle(1,270),offset), 30, 0.025) #2.5cm radius
     TribordWinch = Winch(Vector(Angle(1,0),0.6) + Vector(Angle(1,270),offset), 30, 0.025) #2.5cm radius
     #sail = foil(data_dir+"\\data\\mainSailCoeffs.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
-    sail = foil(data_dir+"\\data\\MarchajSail.cvs", 1.204, 5, position = Vector(Angle(1,90),0.4),rotInertia = 11,size = 0.7, winches = [BabordWinch, TribordWinch])
+    sail = foil(data_dir+"\\data\\MarchajSail.cvs", 1.204, 2.03, position = Vector(Angle(1,90),0.4),rotInertia = 0,size = 0.7, winches = [BabordWinch, TribordWinch])
     sail.setSailRotation(Angle(1,0))
     wind = Vector(Angle(1,270),5.3) # Going South wind, 7 kn
     xpos = -122.09064

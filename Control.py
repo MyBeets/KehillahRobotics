@@ -17,7 +17,7 @@ def aoa(x):
     # return -0.5*x+44#4/9
 
 class Controler():
-    def __init__(self,Boat, polars = "test.pol"):
+    def __init__(self,Boat, polars = "MarPol.pol"):
         self.boat = Boat
         self.polars = self.readPolar(polars)
         self.course = []
@@ -34,15 +34,26 @@ class Controler():
             c2 = self.leg(waypoints[0],waypoints[1])
             c2.extend(self.leg(waypoints[1],waypoints[2]))
             c2.extend(self.leg(waypoints[2],waypoints[3]))
-            c2.extend([waypoints[0]])
+            c2.extend(self.leg(waypoints[3],waypoints[0]))
             course.extend(c2*n)
             course.pop()
             course.extend(self.leg(waypoints[3],[self.boat.position.xcomp(), self.boat.position.ycomp()]))
         elif plantype == "s":#station keeping
             #4 Buoy in any order
             # center
-            course.extend(self.leg([self.boat.position.xcomp(), self.boat.position.ycomp()], [sum(p[0] for p in waypoints)/len(waypoints),sum(p[1] for p in waypoints)/len(waypoints)]))
-            
+            # course.extend(self.leg([self.boat.position.xcomp(), self.boat.position.ycomp()], [sum(p[0] for p in waypoints)/len(waypoints),sum(p[1] for p in waypoints)/len(waypoints)]))
+            last = [self.boat.position.xcomp(), self.boat.position.ycomp()]
+            for i in range(-1,4):
+                avg = [(waypoints[i%4][0]+waypoints[(i+1)%4][0])/2,(waypoints[i%4][1]+waypoints[(i+1)%4][1])/2]
+                angle = math.atan2((waypoints[i%4][1]-waypoints[(i+1)%4][1]),(waypoints[i%4][0]-waypoints[(i+1)%4][0]))+math.pi/2
+                l = math.sqrt((waypoints[(i+1)%4][1]-waypoints[(i+2)%4][1])**2+(waypoints[(i+1)%4][0]-waypoints[(i+2)%4][0])**2)/8
+                avg[0] -= math.cos(angle)*l
+                avg[1]-= math.sin(angle)*l
+                course.extend(self.leg(last, avg))
+                last = avg
+            # course.extend(self.leg(waypoints[1],waypoints[2]))
+            # course.extend(self.leg(waypoints[2],waypoints[3]))
+            # course.extend(self.leg(waypoints[3],waypoints[0]))
         elif plantype == "p":#precision
             # 4 Buoy in order of navigation'
             course.extend(self.leg([self.boat.position.xcomp(), self.boat.position.ycomp()], waypoints[1]))
@@ -141,7 +152,7 @@ class Controler():
         return False
 
     def nextP(self):
-        r = 3#7meter radius to play it safe
+        r = 5#7meter radius to play it safe
         dy = (self.boat.position.ycomp() - self.course[0][1])
         dx = (self.boat.position.xcomp() - self.course[0][0])
         dist = degree2meter(math.sqrt(dx**2 + dy**2))
@@ -155,8 +166,10 @@ class Controler():
                 return 2
         return 0 
     def updateRudder(self,rNoise,stability):
-        if self.nextP() == 1:
-            print("Enpanage")
+        self.nextP()
+        if self.course[0][0] == -1:
+            #mise à la cape sous GV
+            pass
         dx = self.course[0][0]-self.boat.position.xcomp()
         dy = self.course[0][1]-self.boat.position.ycomp()
         target_angle = Angle(1,math.atan2(dy,dx)*180/math.pi)

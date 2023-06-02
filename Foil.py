@@ -94,17 +94,13 @@ class foil: # sail, foil, rudder
             w.rot = angle
     
 
-    pICERI = False
     def updateSailRotation(self,dt,wind):
         if len(self.winches) == 0:
             return
-        if not self.pICERI:
-            print("Inneficiancies, CE, and rot inertia")
-            self.pICERI = True
         forces = self.liftForce(wind) + self.dragForce(wind) # all this should be apparent to the sail
-        ce = 1 # 1 meter right now
+        ce = 0.49 # 1 meter right now
         moment = -1*math.sin(forces.angle.calc() * math.pi/180)* ce # the -1 is due to convention and format of apparent wind
-        rotInteria = 0.1
+        rotInteria = 0.54
         alfa = moment/rotInteria
         self.rotationalVelocity += alfa*dt
         pos1 = self.position + Vector(self.angle+self.position.angle+Angle(1,180),self.size)
